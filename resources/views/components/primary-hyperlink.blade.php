@@ -1,0 +1,3 @@
+<a href="{{$href}}" target="{{$target}}" {{ $attributes->merge(['class' => 'inline-flex items-center px-2 py-1 bg-primarycolor border border-primarycolor rounded-md font-semibold text-xs text-white uppercase tracking-widest shadow-sm hover:bg-primarycolor focus:outline-none focus:ring-2 focus:ring-primarycolor focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150']) }}>
+    {{ $slot }}
+</a>
