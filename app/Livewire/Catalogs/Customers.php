@@ -46,6 +46,7 @@ class Customers extends Component
     ];
 
     public function render(){
+    
         $customers = Customer::where('company_name', 'LIKE', '%' . $this->search . '%')
             ->orWhere('zip_code', 'LIKE', '%' . $this->search . '%')
             ->orWhere('email', 'LIKE', '%' . $this->search . '%')
@@ -78,7 +79,6 @@ class Customers extends Component
     }
 
     public  function createUpdateCustomer(){
-        
         $this->rules = [
             'company_name' => 'required',
         ];
@@ -101,6 +101,7 @@ class Customers extends Component
             $customer->save();
 
             $message = ($this->customerselected != null) ? 'Cliente actualizado con éxito.' : 'Cliente creado con éxito.';
+            
             LivewireAlert::title($message)
                     ->success()
                     ->show();
