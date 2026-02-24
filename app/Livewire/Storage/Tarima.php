@@ -29,13 +29,21 @@ class Tarima extends Component
     use WithPagination;
 
     public $customers, $number_parts;
-    public $serial_number, $id_customer, $id_number_part;
+    public $serial_number, $id_customer;
+    public $id_number_part, $quantity_np, $oc_np, $of_np;
 
     public function mount(){
         $this->customers = Customer::where('active', true)->orderBy('name')->get();
         $this->number_parts = NumberPart::where('active', true)->orderBy('partnumber')->get();
+
+        $this->serial_number = $this->lastTarimaRegisterNumber() + 1;
     }
     public function render(){
         return view('livewire.storage.tarima');
+    }
+
+    public function lastTarimaRegisterNumber(): int
+    {
+        return TarimaModel::lastRegisterId();
     }
 }

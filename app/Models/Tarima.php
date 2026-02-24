@@ -36,4 +36,14 @@ class Tarima extends Model
     public function tarimaNps(){
         return $this->hasMany(TarimaNp::class, 'id_tarima');
     }
+
+    public static function lastRegisterId(): int
+    {
+        return (int) (static::query()->max('id') ?? 0);
+    }
+
+    public static function lastSerialNumber(): ?string
+    {
+        return static::query()->latest('id')->value('serial_number');
+    }
 }

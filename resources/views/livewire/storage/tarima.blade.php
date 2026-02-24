@@ -13,16 +13,16 @@
     
     <div class="bg-white rounded-lg shadow-lg my-3 p-3">
         <div class="w-full md:flex md:space-x-6 mb-4">
-            <div class="w-full md:w-1/2">
+            <div class="w-full md:w-1/3 mb-2">
                 <p class="text-secondarycolor">Número de tarima:</p>
-                <input wire:model ="serial_number" type="text" class="inputcatalogues w-full">
+                <input wire:model="serial_number" type="text" class="inputcatalogues w-full">
                 <span class="text-red-500 text-xs italic">
                     @error('serial_number')
                         {{$message}}
                     @enderror
                 </span>
             </div>
-            <div class="w-full md:w-1/2">
+            <div class="w-full md:w-1/3">
                 <p class="text-secondarycolor">Cliente:</p>
                 <select wire:model="id_customer" id="customer_select" class="inputcatalogues w-full">
                     <option value="">Selecciona un cliente</option>
@@ -41,7 +41,7 @@
         <div class="w-full">
             <p class="font-semibold text-primarycolor">NP  a registrar</p>
             <div class="w-full flex space-x-3">
-                <div class="w-full md:w-1/4">
+                <div class="w-full md:w-1/3">
                     <p class="text-secondarycolor">Número de parte:</p>
                     <select wire:model="id_number_part" id="number_part_select" class="inputcatalogues w-full">
                         <option value="">Seleccionar...</option>
@@ -51,6 +51,35 @@
                     </select>
                     <span class="text-red-500 text-xs italic">
                         @error('id_number_part')
+                            {{$message}}
+                        @enderror
+                    </span>
+                </div>
+                <div class="w-full md:w-1/3">
+                    <p class="text-secondarycolor">Cantidad:</p>
+                    <input wire:model="quantity_np" type="text" class="inputcatalogues w-full">
+                    <span class="text-red-500 text-xs italic">
+                        @error('quantity_np')
+                            {{$message}}
+                        @enderror
+                    </span>
+                </div>
+            </div>
+            <div class="w-full flex space-x-3 mt-3">
+                <div class="w-full md:w-1/3">
+                    <p class="text-secondarycolor">OC:</p>
+                    <input wire:model="oc_np" type="text" class="inputcatalogues w-full">
+                    <span class="text-red-500 text-xs italic">
+                        @error('oc_np')
+                            {{$message}}
+                        @enderror
+                    </span>
+                </div>
+                <div class="w-full md:w-1/3">
+                    <p class="text-secondarycolor">OF:</p>
+                    <input wire:model="of_np" type="text" class="inputcatalogues w-full">
+                    <span class="text-red-500 text-xs italic">
+                        @error('of_np')
                             {{$message}}
                         @enderror
                     </span>
