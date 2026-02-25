@@ -23,4 +23,12 @@ class TarimaNp extends Model
     protected $casts = [
         'status_cont' => 'boolean',
     ];
+
+    public function tarima(){
+        return $this->belongsTo(Tarima::class, 'id_tarima');
+    }
+
+    public function numberPart(){
+        return $this->belongsTo(NumberPart::class, 'id_np');
+    }
 }

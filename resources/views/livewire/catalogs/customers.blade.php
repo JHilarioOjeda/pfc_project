@@ -2,7 +2,7 @@
 
     <x-loading functionsList="scmodalcustomers, createUpdateCustomer" />
 
-    <p class="text-secondarycolor text-2xl font-bold">Clientes</p>
+    <p class="text-secondarycolor text-2xl font-bold">Clientes prueba</p>
     <div class="bg-white rounded-lg shadow-lg my-3 p-3">
 
         <div class="pb-4 w-full flex">
@@ -109,7 +109,7 @@
                         <div class="md:flex w-full md:space-x-4">
                             <div class="w-full md:w-1/2">
                                 <p class="text-secondarycolor">Razón social:</p>
-                                <input wire:model ="company_name" type="text" class="inputcatalogues w-full">
+                                <input wire:model="company_name" type="text" class="inputcatalogues w-full">
                                 <div>
                                     <span class="text-red-500 text-xs italic">
                                         @error('company_name')
