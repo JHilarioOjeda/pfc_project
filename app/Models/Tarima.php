@@ -29,7 +29,7 @@ class Tarima extends Model
         return $this->belongsTo(Customer::class, 'id_customer');
     }
 
-    public function who_register(){
+    public function registeredBy(){
         return $this->belongsTo(User::class, 'who_register');
     }
 
@@ -40,6 +40,7 @@ class Tarima extends Model
     public static function lastRegisterId(): int
     {
         return (int) (static::query()->max('id') ?? 0);
+        
     }
 
     public static function lastSerialNumber(): ?string

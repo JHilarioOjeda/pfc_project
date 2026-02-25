@@ -31,12 +31,13 @@ class Storage extends Component
 
     public function render()
     {
-        $tarimas = Tarima::with(['customer', 'who_register'])
+        $tarimas = Tarima::with(['customer', 'registeredBy'])
             ->where('serial_number', 'LIKE', '%' . $this->search . '%')
-            ->whereHas('customer', function($query) {
+            ->orWhere('register_date', 'LIKE', '%' . $this->search . '%')
+            ->orWhereHas('customer', function($query) {
                 $query->where('name', 'LIKE', '%' . $this->search . '%');
             })
-            ->orWhereHas('who_register', function($query) {
+            ->orWhereHas('registeredBy', function($query) {
                 $query->where('name', 'LIKE', '%' . $this->search . '%');
             })
             ->orderBy('register_date', 'DESC')
