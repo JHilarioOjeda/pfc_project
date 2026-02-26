@@ -27,4 +27,8 @@ class Proccess extends Model
         'start_date' => 'datetime',
         'finished_date' => 'datetime',
     ];
+
+    public function tarimaNp(){
+        return $this->belongsTo(TarimaNp::class, 'id_tarima_np');
+    }
 }

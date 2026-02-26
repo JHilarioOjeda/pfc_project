@@ -23,6 +23,7 @@ use App\Models\Customer;
 use App\Models\NumberPart;
 use App\Models\TarimaNp;
 use App\Models\User;
+use App\Models\Proccess;
 
 class Tarima extends Component
 {
@@ -234,5 +235,33 @@ class Tarima extends Component
         }
 
         return true;
+    }
+
+    public function confirmEntry()
+    {
+        DB::beginTransaction();
+
+        try {
+            DB::commit();
+
+            foreach($this->tarima_selected->tarimaNps as $item){
+                $proccess = Proccess::create([
+                    'id_tarima_np' => $item->id,
+                    'status' => 'pending',
+                ]);                
+            }
+
+            LivewireAlert::title('Entrada confirmada correctamente.')
+                    ->success()
+                    ->show();
+
+            return redirect()->route('storage');
+        } catch (Throwable $e) {
+            DB::rollBack();
+            Log::error('Error al confirmar entrada: '.$e->getMessage());
+            LivewireAlert::title('Error al confirmar entrada.')
+                    ->error()
+                    ->show();
+        }
     }
 }

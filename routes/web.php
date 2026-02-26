@@ -13,7 +13,7 @@ Route::middleware(['auth:sanctum',config('jetstream.auth_session'),'verified',])
         return view('dashboard');
     })->name('dashboard');
 
-    //catalogos
+    //CATALOGOS
         Route::get('/admin/users', function () {
             return view('users.users');
         });
@@ -22,7 +22,7 @@ Route::middleware(['auth:sanctum',config('jetstream.auth_session'),'verified',])
         });
     //
 
-    //almacen
+    //ALMACEN
         Route::get('/storage', function () {
             return view('storage.storage');
         })->name('storage');
@@ -30,5 +30,11 @@ Route::middleware(['auth:sanctum',config('jetstream.auth_session'),'verified',])
         Route::get('/storage/{id}', function ($id) {
             return view('storage.tarima', compact('id'));
         })->name('storage.tarima');
+    //
+
+    // PROCESOS
+        Route::get('/processes', function () {
+            return view('processes.processes');
+        })->name('processes');
     //
 });
