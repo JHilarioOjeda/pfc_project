@@ -36,5 +36,9 @@ Route::middleware(['auth:sanctum',config('jetstream.auth_session'),'verified',])
         Route::get('/processes', function () {
             return view('processes.processes');
         })->name('processes');
+
+        Route::get('/process/{id}', function ($id) {
+            return view('processes.process', compact('id'));
+        })->name('processes.process');
     //
 });
