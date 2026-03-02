@@ -27,7 +27,7 @@
                         @foreach ($processes as $process)
                             <tr class="border-b border-gray-200 text-sm">
                                 <td class="px-4 py-2">
-                                    {{$process->tarimaNp->tarima->serial_number}}
+                                    #{{$process->tarimaNp->tarima->serial_number}}
                                 </td>
                                 <td scope="row" class="px-4 py-2 font-medium whitespace-nowrap">
                                     <span class="font-bold text-sm">{{$process->tarimaNp->numberPart->partnumber}}</span>
@@ -56,7 +56,7 @@
                                             <span class="px-2 py-1 rounded-lg text-[10px] uppercase font-semibold bg-gray-200 text-gray-600">sin comenzar</span>
                                         </td>
                                         <td class="px-4 py-2 text-center space-y-3">
-                                            <x-button-primary class="!px-2 !py-1 text-[10px]">
+                                            <x-button-primary onclick="startProcess({{$process->id}})" class="!px-2 !py-1 text-[10px]">
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 mr-1">
                                                     <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V9Z" clip-rule="evenodd" />
                                                 </svg>
@@ -107,3 +107,30 @@
     </div>
 
 </div>
+
+@push('js')
+<script>
+    function startProcess(idprocess){
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "¡El proceso comenzará y no podrás revertir esta acción!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#F27D16',
+            cancelButtonColor: '#EF4444',
+            confirmButtonText: 'Sí, comenzar proceso',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire(
+                    '¡Comenzado!',
+                    'El proceso ha comenzado.',
+                    'success'
+                )
+
+                window.location.href = '/process/' + idprocess;
+            }
+        });
+    }
+</script>
+@endpush

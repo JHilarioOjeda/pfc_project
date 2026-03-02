@@ -194,18 +194,12 @@
                 searchPlaceholder: 'Buscar',
                 searchText: 'No se encontraron resultados',
             },
-        });
-    }
-
-    document.addEventListener('DOMContentLoaded', function () {
-        initCustomerSelect();
-        initNumberPartSelect();
-    });
-
-    if (window.Livewire && Livewire.hook) {
-        Livewire.hook('message.processed', () => {
-            initCustomerSelect();
-            initNumberPartSelect();
+            events: {
+                afterChange: () => {
+                    // Asegura que Livewire capture el cambio
+                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                },
+            },
         });
     }
 
@@ -226,8 +220,26 @@
                 searchPlaceholder: 'Buscar',
                 searchText: 'No se encontraron resultados',
             },
+            events: {
+                afterChange: () => {
+                    // Asegura que Livewire capture el cambio
+                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                },
+            },
         });
     }
+
+    // Registra un refresco global (el layout lo invoca tras updates de Livewire v3)
+    window.refreshSlimSelects = ((previous) => {
+        return function () {
+            if (typeof previous === 'function') previous();
+            initCustomerSelect();
+            initNumberPartSelect();
+        };
+    })(window.refreshSlimSelects);
+
+    // Disparo inicial por si este script se carga después del DOMContentLoaded
+    window.refreshSlimSelects();
 
     function confirmcount(index) {
         Swal.fire({

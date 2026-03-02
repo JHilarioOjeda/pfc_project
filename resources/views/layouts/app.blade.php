@@ -48,13 +48,28 @@
 
         <script src="https://cdn.jsdelivr.net/npm/slim-select@2.8.1/dist/slimselect.min.js"></script>
         <script>
+            const runSlimSelectRefresh = () => {
+                if (typeof window.refreshSlimSelects === 'function') window.refreshSlimSelects();
+            };
 
-            // Reaplicar después de actualizaciones de Livewire si está disponible
-            if (window.Livewire && Livewire.hook) {
-                Livewire.hook('message.processed', () => {
-                    initTeamSelects();
-                });
-            }
+            // Carga inicial
+            document.addEventListener('DOMContentLoaded', runSlimSelectRefresh);
+
+            // Para wire:navigate (Livewire v3)
+            document.addEventListener('livewire:navigated', runSlimSelectRefresh);
+
+            // Reaplicar después de actualizaciones de Livewire (v3)
+            document.addEventListener('livewire:init', () => {
+                runSlimSelectRefresh();
+
+                if (window.Livewire && Livewire.hook) {
+                    Livewire.hook('commit', ({ succeed }) => {
+                        succeed(() => {
+                            setTimeout(runSlimSelectRefresh, 0);
+                        });
+                    });
+                }
+            });
         </script>
     </body>
 </html>
