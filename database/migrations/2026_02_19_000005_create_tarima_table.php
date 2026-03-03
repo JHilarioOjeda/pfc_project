@@ -16,6 +16,7 @@ return new class extends Migration
             $table->timestamp('register_date')->nullable();
             $table->text('document_url')->nullable();
             $table->boolean('active')->default(true);
+            $table->string('status')->default('inprocess');
             $table->timestamps();
 
             $table->foreign('id_customer')
