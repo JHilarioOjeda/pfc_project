@@ -13,6 +13,7 @@
             <table class="table table-hover w-full text-left">
                 <thead>
                     <tr class="bg-gray-200 text-sm font-semibold">
+                        <th class="px-4 py-2">ID Proceso</th>
                         <th class="px-4 py-2">Tarima</th>
                         <th class="px-4 py-2">Número de parte</th>
                         <th class="px-4 py-2 hidden lg:table-cell">Orden de compra</th>
@@ -26,6 +27,9 @@
                     @if (count($processes) != 0)
                         @foreach ($processes as $process)
                             <tr class="border-b border-gray-200 text-sm">
+                                <td class="px-4 py-2">
+                                    {{$process->id}}
+                                </td>
                                 <td class="px-4 py-2">
                                     #{{$process->tarimaNp->tarima->serial_number}}
                                 </td>
@@ -58,8 +62,9 @@
                                         <td class="px-4 py-2 text-center space-y-3">
                                             <x-button-primary onclick="startProcess({{$process->id}})" class="!px-2 !py-1 text-[10px]">
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 mr-1">
-                                                    <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V9Z" clip-rule="evenodd" />
+                                                    <path fill-rule="evenodd" d="M3 2.25a.75.75 0 0 1 .75.75v.54l1.838-.46a9.75 9.75 0 0 1 6.725.738l.108.054A8.25 8.25 0 0 0 18 4.524l3.11-.732a.75.75 0 0 1 .917.81 47.784 47.784 0 0 0 .005 10.337.75.75 0 0 1-.574.812l-3.114.733a9.75 9.75 0 0 1-6.594-.77l-.108-.054a8.25 8.25 0 0 0-5.69-.625l-2.202.55V21a.75.75 0 0 1-1.5 0V3A.75.75 0 0 1 3 2.25Z" clip-rule="evenodd" />
                                                 </svg>
+
                                                 Comenzar proceso
                                             </x-button-primary>
                                         </td>
@@ -91,6 +96,15 @@
                                                     <path d="M5.25 5.25a3 3 0 0 0-3 3v10.5a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3V13.5a.75.75 0 0 0-1.5 0v5.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5V8.25a1.5 1.5 0 0 1 1.5-1.5h5.25a.75.75 0 0 0 0-1.5H5.25Z" />
                                                 </svg>
                                                 Detalles
+                                            </x-secondary-hyperlink>
+
+                                            <x-secondary-hyperlink href="{{ route('measurementreports', $process->id) }}" target="" class="!px-2 !py-1 text-[10px]">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 mr-1">
+                                                    <path fill-rule="evenodd" d="M5.625 1.5H9a3.75 3.75 0 0 1 3.75 3.75v1.875c0 1.036.84 1.875 1.875 1.875H16.5a3.75 3.75 0 0 1 3.75 3.75v7.875c0 1.035-.84 1.875-1.875 1.875H5.625a1.875 1.875 0 0 1-1.875-1.875V3.375c0-1.036.84-1.875 1.875-1.875ZM9.75 17.25a.75.75 0 0 0-1.5 0V18a.75.75 0 0 0 1.5 0v-.75Zm2.25-3a.75.75 0 0 1 .75.75v3a.75.75 0 0 1-1.5 0v-3a.75.75 0 0 1 .75-.75Zm3.75-1.5a.75.75 0 0 0-1.5 0V18a.75.75 0 0 0 1.5 0v-5.25Z" clip-rule="evenodd" />
+                                                    <path d="M14.25 5.25a5.23 5.23 0 0 0-1.279-3.434 9.768 9.768 0 0 1 6.963 6.963A5.23 5.23 0 0 0 16.5 7.5h-1.875a.375.375 0 0 1-.375-.375V5.25Z" />
+                                                </svg>
+
+                                                Reporte de medición
                                             </x-secondary-hyperlink>
                                         </td>
                                         @break
