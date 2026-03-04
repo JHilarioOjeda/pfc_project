@@ -44,6 +44,8 @@
             </main>
         </div>
 
+        <livewire:start-checklist.modal />
+
         @livewireScripts
 
         <script src="https://cdn.jsdelivr.net/npm/slim-select@2.8.1/dist/slimselect.min.js"></script>
