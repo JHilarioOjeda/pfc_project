@@ -1,5 +1,5 @@
 <div class="containerpric">
-    <x-loading functionsList="" />
+    <x-loading functionsList="addMeasurement, removeMeasurement, saveReport, finishProcessWithReport" />
 
     <div class="w-full flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-4">
         <x-secondary-hyperlink href="{{ route('processes') }}" target="" class="my-auto whitespace-nowrap w-fit">
@@ -105,7 +105,7 @@
                                     </span>
                                 </div>
 
-                                <x-secondary-button class="w-fit mt-2 self-end sm:mt-0 sm:self-auto h-[2rem]" wire:click="addDeadtime">
+                                <x-secondary-button class="w-fit mt-2 self-end sm:mt-0 sm:self-auto h-[2rem]" wire:click="addMeasurement">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 mr-2">
                                         <path fill-rule="evenodd" d="M12 3.75a.75.75 0 0 1 .75.75v6.75h6.75a.75.75 0 0 1 0 1.5h-6.75v6.75a.75.75 0 0 1-1.5 0v-6.75H4.5a.75.75 0 0 1 0-1.5h6.75V4.5a.75.75 0 0 1 .75-.75Z" clip-rule="evenodd" />
                                     </svg>
@@ -136,7 +136,7 @@
                                                 <td class="px-1 py-2 text-center">{{ $item['thickness_in_microns'] }}</td>
                                                 <td class="px-1 py-2">{{ $item['visual_appearance'] }}</td>
                                                 <td class="px-1 py-2">
-                                                    <x-buttondelete class="!px-2 !py-1 text-xs" wire:click="removeDeadtime({{ $index }})">
+                                                    <x-buttondelete class="!px-2 !py-1 text-xs" wire:click="removeMeasurement({{ $index }})">
                                                         Eliminar
                                                     </x-buttondelete>
                                                 </td>
@@ -151,25 +151,14 @@
         </div>
 
         <div class="flex flex-row space-x-3 justify-end mt-12">
-            <x-secondary-button class="w-fit h-fit" onclick="confirmUpdateProcess()">
+            <x-button-primary class="w-fit h-fit" onclick="confirmSaveReport()">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 mr-1">
                     <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32l8.4-8.4Z" />
                     <path d="M5.25 5.25a3 3 0 0 0-3 3v10.5a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3V13.5a.75.75 0 0 0-1.5 0v5.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5V8.25a1.5 1.5 0 0 1 1.5-1.5h5.25a.75.75 0 0 0 0-1.5H5.25Z" />
                 </svg>
 
-                Actualizar datos
-            </x-secondary-button>
-
-            @if($process_selected && $process_selected->tarimaNp && $process_selected->tarimaNp->quantity == $quantity_processed && $process_selected->status != 'finished')
-                <x-button-primary class="w-fit h-fit" onclick="confirmFinishProcess()">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 mr-1">
-                        <path fill-rule="evenodd" d="M19.916 4.626a.75.75 0 0 1 .208 1.04l-9 13.5a.75.75 0 0 1-1.154.114l-6-6a.75.75 0 0 1 1.06-1.06l5.353 5.353 8.493-12.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd" />
-                    </svg>
-
-
-                    Terminar proceso
-                </x-button-primary>
-            @endif
+                {{ $reportExists ? 'Actualizar reporte' : 'Guardar reporte' }}
+            </x-button-primary>
         </div>
     </div>
 </div>
@@ -240,23 +229,23 @@
     // Disparo inicial
     window.refreshSlimSelects();
 
-    function confirmUpdateProcess() {
+    function confirmSaveReport() {
         Swal.fire({
-            title: '¿Deseas actualizar los datos del proceso?',
+            title: '{{ $reportExists ? '¿Deseas actualizar el reporte de medición?' : '¿Deseas guardar el reporte de medición?' }}',
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#F27D16',
             cancelButtonColor: '#EF4444',
-            confirmButtonText: 'Si, actualizar',
+            confirmButtonText: '{{ $reportExists ? 'Si, actualizar' : 'Si, guardar' }}',
             cancelButtonText: 'Cancelar',
         }).then((result) => {
             if (result.isConfirmed) {
-                @this.call('updateProcessData');
+                @this.call('saveReport');
             }
         });
     }
 
-    function confirmFinishProcess() {
+    function confirmFinishProcessWithReport() {
         Swal.fire({
             title: '¿Deseas terminar este proceso?',
             text: 'Se marcará como Terminado y ya no podrás editarlo.',
@@ -268,7 +257,7 @@
             cancelButtonText: 'Cancelar',
         }).then((result) => {
             if (result.isConfirmed) {
-                @this.call('finishProcess');
+                @this.call('finishProcessWithReport');
             }
         });
     }
