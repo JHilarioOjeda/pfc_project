@@ -3,47 +3,23 @@
 namespace App\Livewire\Processes;
 
 use Livewire\Component;
-use DB;
-use Livewire\WithPagination;
-use Illuminate\Support\Facades\Storage as StorageDisk;
-use Livewire\WithFileUploads;
-use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Facades\Hash;
-use Aws\S3\S3Client;
-use Aws\S3\Exception\S3Exception;
-use RealRashid\SweetAlert\Facades\Alert;
+use Illuminate\Support\Facades\DB;
 use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rules\Password;
-use Auth;
 use Throwable;
-use Log;
-use App\Models\Tarima as TarimaModel;
-use App\Models\Customer;
-use App\Models\NumberPart;
-use App\Models\TarimaNp;
-use App\Models\User;
+use Illuminate\Support\Facades\Log;
 use App\Models\Proccess;
-use App\Models\WorkLine;
-use App\Models\Timeout;
 use App\Models\MeditionsReport;
 use App\Models\MeditionsreportObservation;
 
 class Measurementreport extends Component
 {
-    use WithFileUploads;
-    use WithPagination;
-
     public $idprocess, $process_selected;
 
     public $method, $requirement;
     public $visual_appearance, $thickness_in_microns;
 
     // Lista de mediciones registradas (cada elemento: id_observation, thickness_in_microns, visual_appearance)
-    public $deadTimesList = [];
-
-    // Se usa únicamente para la condición del botón "Terminar proceso" en la vista
-    public $quantity_processed;
+    public $measurementsList = [];
 
     // Indica si ya existe un reporte de medición para este proceso
     public $reportExists = false;
@@ -54,8 +30,6 @@ class Measurementreport extends Component
         $this->process_selected = Proccess::find($idprocess);
 
         if ($this->process_selected) {
-            $this->quantity_processed = $this->process_selected->pieces_alreadyproccess;
-
             $report = MeditionsReport::where('id_proccess', $this->process_selected->id)->first();
 
             if ($report) {
@@ -65,7 +39,7 @@ class Measurementreport extends Component
 
                 $observations = MeditionsreportObservation::where('id_medition_report', $report->id)->get();
                 foreach ($observations as $observation) {
-                    $this->deadTimesList[] = [
+                    $this->measurementsList[] = [
                         'id_observation' => $observation->id,
                         'thickness_in_microns' => $observation->thickness_in_microns,
                         'visual_appearance' => $observation->visual_appearance,
@@ -192,7 +166,7 @@ class Measurementreport extends Component
                 'visual_appearance' => $this->getVisualAppearanceLabel($this->visual_appearance),
             ]);
 
-            $this->deadTimesList[] = [
+            $this->measurementsList[] = [
                 'id_observation' => $observation->id,
                 'thickness_in_microns' => $observation->thickness_in_microns,
                 'visual_appearance' => $observation->visual_appearance,
@@ -213,11 +187,11 @@ class Measurementreport extends Component
 
     public function removeMeasurement($index)
     {
-        if (!isset($this->deadTimesList[$index])) {
+        if (!isset($this->measurementsList[$index])) {
             return;
         }
 
-        $item = $this->deadTimesList[$index];
+        $item = $this->measurementsList[$index];
 
         if (!empty($item['id_observation'])) {
             $observation = MeditionsreportObservation::find($item['id_observation']);
@@ -226,8 +200,8 @@ class Measurementreport extends Component
             }
         }
 
-        unset($this->deadTimesList[$index]);
-        $this->deadTimesList = array_values($this->deadTimesList);
+        unset($this->measurementsList[$index]);
+        $this->measurementsList = array_values($this->measurementsList);
     }
 
     public function finishProcessWithReport()
@@ -246,7 +220,7 @@ class Measurementreport extends Component
         }
 
         // Opcional: exigir al menos una medición antes de terminar el proceso
-        if (count($this->deadTimesList) === 0) {
+        if (count($this->measurementsList) === 0) {
             LivewireAlert::title('Debes registrar al menos una medición antes de terminar el proceso.')
                 ->warning()
                 ->show();

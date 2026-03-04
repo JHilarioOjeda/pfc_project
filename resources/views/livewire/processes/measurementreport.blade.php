@@ -115,7 +115,7 @@
                         </div>
                     
             </div>
-            @if(count($deadTimesList) > 0)
+            @if(count($measurementsList) > 0)
                     <div class="w-full lg:w-1/2 mt-4">
                         <p class="font-semibold text-primarycolor">Mediciones</p>
                         <div class="w-full rounded-lg border-2 border-dashed border-gray-200 p-2">
@@ -130,7 +130,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach($deadTimesList as $index => $item)
+                                        @foreach($measurementsList as $index => $item)
                                             <tr class="border-b last:border-b-0">
                                                 <td class="px-1 py-2">{{ $loop->iteration }}</td>
                                                 <td class="px-1 py-2 text-center">{{ $item['thickness_in_microns'] }}</td>
@@ -165,78 +165,14 @@
 
 @push('js')
 <script>
-    function initLineSelect() {
-        if (typeof SlimSelect === 'undefined') return;
-
-        if (window.lineSlim) {
-            window.lineSlim.destroy();
-        }
-
-        const el = document.getElementById('id_line');
-        if (!el) return;
-
-        window.lineSlim = new SlimSelect({
-            select: el,
-            settings: {
-                placeholderText: 'Seleccionar...',
-                searchPlaceholder: 'Buscar',
-                searchText: 'No se encontraron resultados',
-            },
-            events: {
-                afterChange: () => {
-                    // Asegura que Livewire capture el cambio
-                    el.dispatchEvent(new Event('change', { bubbles: true }));
-                },
-            },
-        });
-    }
-
-    function initDeadtimeSelect() {
-        if (typeof SlimSelect === 'undefined') return;
-
-        if (window.deadtimeSlim) {
-            window.deadtimeSlim.destroy();
-        }
-
-        const el = document.getElementById('deadtime_select');
-        if (!el) return;
-
-        window.deadtimeSlim = new SlimSelect({
-            select: el,
-            settings: {
-                placeholderText: 'Seleccionar...',
-                searchPlaceholder: 'Buscar',
-                searchText: 'No se encontraron resultados',
-            },
-            events: {
-                afterChange: () => {
-                    // Asegura que Livewire capture el cambio
-                    el.dispatchEvent(new Event('change', { bubbles: true }));
-                },
-            },
-        });
-    }
-
-    // Registra un refresco global (el layout lo invoca tras updates de Livewire v3)
-    window.refreshSlimSelects = ((previous) => {
-        return function () {
-            if (typeof previous === 'function') previous();
-            initLineSelect();
-            initDeadtimeSelect();
-        };
-    })(window.refreshSlimSelects);
-
-    // Disparo inicial
-    window.refreshSlimSelects();
-
     function confirmSaveReport() {
         Swal.fire({
-            title: '{{ $reportExists ? '¿Deseas actualizar el reporte de medición?' : '¿Deseas guardar el reporte de medición?' }}',
+            title: "{{ $reportExists ? '¿Deseas actualizar el reporte de medición?' : '¿Deseas guardar el reporte de medición?' }}",
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#F27D16',
             cancelButtonColor: '#EF4444',
-            confirmButtonText: '{{ $reportExists ? 'Si, actualizar' : 'Si, guardar' }}',
+            confirmButtonText: "{{ $reportExists ? 'Si, actualizar' : 'Si, guardar' }}",
             cancelButtonText: 'Cancelar',
         }).then((result) => {
             if (result.isConfirmed) {
