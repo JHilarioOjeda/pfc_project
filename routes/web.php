@@ -13,6 +13,10 @@ Route::middleware(['auth:sanctum',config('jetstream.auth_session'),'verified',])
         return view('dashboard');
     })->name('dashboard');
 
+    Route::get('/myprofile', function () {
+        return view('users.myprofile');
+    })->name('myprofile');
+
     //CATALOGOS
         Route::get('/admin/users', function () {
             return view('users.users');

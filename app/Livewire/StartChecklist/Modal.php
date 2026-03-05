@@ -5,39 +5,28 @@ namespace App\Livewire\StartChecklist;
 use App\Models\StartChecklist;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Livewire\Component;
-use Throwable;
+use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
 
 class Modal extends Component
 {
-    public bool $show = false;
+    public $show = false;
 
-    /** @var array<string, mixed> */
-    public array $answers = [];
+    public $answers = [];
 
-    /** @var array<int, array<string, mixed>> */
-    public array $questions = [];
+    public $questions = [];
 
     public function mount(): void
     {
         $this->questions = (array) config('start_checklist.questions', []);
-        $this->initializeAnswers();
-        $this->refreshVisibility();
-    }
-
-    protected function initializeAnswers(): void
-    {
         foreach ($this->questions as $question) {
             $key = $question['key'] ?? null;
-            if (!$key) {
-                continue;
-            }
-
-            if (!array_key_exists($key, $this->answers)) {
+            if ($key && !array_key_exists($key, $this->answers)) {
                 $this->answers[$key] = null;
             }
         }
+
+        $this->updateVisibility();
     }
 
     protected function isLeaderProductionUser(): bool
@@ -70,7 +59,7 @@ class Modal extends Component
             ->exists();
     }
 
-    public function refreshVisibility(): void
+    public function updateVisibility(): void
     {
         if (!$this->isLeaderProductionUser()) {
             $this->show = false;
@@ -90,82 +79,15 @@ class Modal extends Component
                 continue;
             }
 
-            $type = $question['type'] ?? 'boolean';
             $required = (bool) ($question['required'] ?? true);
-
-            if ($type === 'boolean') {
-                $rules["answers.$key"] = ($required ? 'required|' : 'nullable|') . 'in:0,1';
-                continue;
-            }
-
-            if ($type === 'text') {
-                $max = (int) ($question['max'] ?? 255);
-                $rules["answers.$key"] = ($required ? 'required|' : 'nullable|') . "string|max:$max";
-                continue;
-            }
-
-            if ($type === 'number') {
-                $rules["answers.$key"] = ($required ? 'required|' : 'nullable|') . 'numeric';
-                continue;
-            }
-
-            $rules["answers.$key"] = ($required ? 'required|' : 'nullable|') . 'string';
+            $rules["answers.$key"] = $required ? 'required|in:0,1' : 'nullable|in:0,1';
         }
 
         return $rules;
     }
 
-    protected function validationAttributes(): array
-    {
-        $attributes = [];
-
-        foreach ($this->questions as $question) {
-            $key = $question['key'] ?? null;
-            if (!$key) {
-                continue;
-            }
-
-            $attributes["answers.$key"] = $question['label'] ?? $key;
-        }
-
-        return $attributes;
-    }
-
-    protected function buildQuestionsPayload(): array
-    {
-        $payload = [];
-
-        foreach ($this->questions as $question) {
-            $key = $question['key'] ?? null;
-            if (!$key) {
-                continue;
-            }
-
-            $type = $question['type'] ?? 'boolean';
-            $answer = $this->answers[$key] ?? null;
-
-            if ($type === 'boolean' && $answer !== null) {
-                $answer = (bool) ((int) $answer);
-            }
-
-            $payload[] = [
-                'key' => $key,
-                'label' => $question['label'] ?? $key,
-                'type' => $type,
-                'answer' => $answer,
-            ];
-        }
-
-        return $payload;
-    }
-
     public function save(): void
     {
-        $this->refreshVisibility();
-        if (!$this->show) {
-            return;
-        }
-
         $this->validate();
 
         $user = Auth::user();
@@ -176,22 +98,47 @@ class Modal extends Component
         DB::beginTransaction();
 
         try {
-            if (!$this->hasChecklistForToday()) {
-                StartChecklist::create([
-                    'id_user' => $user->id,
-                    'questions' => $this->buildQuestionsPayload(),
-                    'register_date' => now(),
-                ]);
+            if ($this->hasChecklistForToday()) {
+                DB::commit();
+                $this->show = false;
+                return;
             }
+
+            $questions = [];
+            foreach ($this->questions as $question) {
+                $key = $question['key'] ?? null;
+                if (!$key) {
+                    continue;
+                }
+
+                $answer = $this->answers[$key] ?? null;
+                if ($answer !== null) {
+                    $answer = (bool) ((int) $answer);
+                }
+
+                $questions[] = [
+                    'key' => $key,
+                    'label' => $question['label'] ?? $key,
+                    'type' => $question['type'] ?? 'boolean',
+                    'answer' => $answer,
+                ];
+            }
+
+            StartChecklist::create([
+                'id_user' => $user->id,
+                'questions' => $questions,
+                'register_date' => now(),
+            ]);
 
             DB::commit();
 
             $this->show = false;
-        } catch (Throwable $e) {
+            LivewireAlert::title('Checklist de arranque guardado con éxito.')
+                ->success()
+                ->show();
+        } catch (\Throwable $e) {
             DB::rollBack();
-
-            Log::error('Error al guardar start checklist: ' . $e->getMessage());
-            $this->addError('save', 'No se pudo guardar el checklist. Intenta de nuevo.');
+            $this->addError('save', 'No se pudo guardar el checklist de arranque. Intenta de nuevo.');
         }
     }
 

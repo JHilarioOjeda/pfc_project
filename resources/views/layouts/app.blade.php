@@ -8,8 +8,6 @@
         <title>{{ config('app.name', 'Laravel') }}</title>
 
         <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
         <!-- icons -->
         <link rel="icon" type="image/png" sizes="32x32" href="/imgs/logos/icono.png">
@@ -21,7 +19,6 @@
         @livewireStyles
 
         <!-- Slim Select (buscador en selects de equipos) -->
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/slim-select@2.8.1/dist/slimselect.min.css" />
     </head>
     <body class="font-sans antialiased">
         <x-banner />
@@ -47,8 +44,6 @@
         <livewire:start-checklist.modal />
 
         @livewireScripts
-
-        <script src="https://cdn.jsdelivr.net/npm/slim-select@2.8.1/dist/slimselect.min.js"></script>
         <script>
             const runSlimSelectRefresh = () => {
                 if (typeof window.refreshSlimSelects === 'function') window.refreshSlimSelects();

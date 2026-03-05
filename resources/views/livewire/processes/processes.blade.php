@@ -14,7 +14,6 @@
                 <thead>
                     <tr class="bg-gray-200 text-sm font-semibold">
                         <th class="px-4 py-2">ID Proceso</th>
-                        <th class="px-4 py-2">Tarima</th>
                         <th class="px-4 py-2">Número de parte</th>
                         <th class="px-4 py-2 hidden lg:table-cell">Orden de compra</th>
                         <th class="px-4 py-2 hidden lg:table-cell">Orden de fabricación</th>
@@ -30,7 +29,7 @@
                                 <td class="px-4 py-2">
                                     {{$process->id}}
                                 </td>
-                                <td class="px-4 py-2">
+                                <td class="px-4 py-2 hidden lg:table-cell">
                                     #{{$process->tarimaNp->tarima->serial_number}}
                                 </td>
                                 <td scope="row" class="px-4 py-2 font-medium whitespace-nowrap">
@@ -38,6 +37,7 @@
                                     
                                     <!-- Datos extra en móvil -->
                                     <div class="block lg:hidden mt-2 text-gray-500 text-sm">
+                                        <p><span class="font-semibold text-black">Tarima:</span> #{{$process->tarimaNp->tarima->serial_number}}</p>
                                         <p><span class="font-semibold">Orden de compra:</span> {{$process->tarimaNp->oc}}</p>
                                         <p><span class="font-semibold">Orden de fabricación:</span> {{$process->tarimaNp->of}}</p>
                                         <p><span class="font-semibold">Cliente:</span> {{$process->tarimaNp->tarima->customer->name}}</p>
@@ -56,12 +56,12 @@
                                 </td>
                                 @switch($process->status)
                                     @case('pending')
-                                        <td class="px-4 py-2 text-center">
+                                        <td class="px-1 py-2 text-center">
                                             <span class="px-2 py-1 rounded-lg text-[10px] uppercase font-semibold bg-gray-200 text-gray-600">sin comenzar</span>
                                         </td>
-                                        <td class="px-4 py-2 text-center space-y-3">
+                                        <td class="px-4 py-2 text-right space-y-3">
                                             <x-button-primary onclick="startProcess({{$process->id}})" class="!px-2 !py-1 text-[10px]">
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 mr-1">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-3 mr-1">
                                                     <path fill-rule="evenodd" d="M3 2.25a.75.75 0 0 1 .75.75v.54l1.838-.46a9.75 9.75 0 0 1 6.725.738l.108.054A8.25 8.25 0 0 0 18 4.524l3.11-.732a.75.75 0 0 1 .917.81 47.784 47.784 0 0 0 .005 10.337.75.75 0 0 1-.574.812l-3.114.733a9.75 9.75 0 0 1-6.594-.77l-.108-.054a8.25 8.25 0 0 0-5.69-.625l-2.202.55V21a.75.75 0 0 1-1.5 0V3A.75.75 0 0 1 3 2.25Z" clip-rule="evenodd" />
                                                 </svg>
 
@@ -70,11 +70,11 @@
                                         </td>
                                         @break
                                     @case('inprocess')
-                                        <td class="px-4 py-2 text-center">
+                                        <td class="px-1 py-2 text-center">
                                             <span class="px-2 py-1 rounded-lg text-[10px] uppercase font-semibold bg-yellow-200 text-yellow-600">En proceso</span>
                                         </td>
 
-                                        <td class="px-4 py-2 text-center space-y-3">
+                                        <td class="px-1 py-2 text-right space-y-3">
                                             <x-secondary-hyperlink href="{{ route('processes.process', $process->id) }}" target="" class="!px-2 !py-1 text-[10px]">
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 mr-1">
                                                     <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32l8.4-8.4Z" />
@@ -85,11 +85,11 @@
                                         </td>
                                         @break
                                     @case('finished')
-                                        <td class="px-4 py-2 text-center">
+                                        <td class="px-1 py-2 text-center">
                                             <span class="px-2 py-1 rounded-lg text-[10px] uppercase font-semibold bg-green-200 text-green-600">Completado</span>
                                         </td>
 
-                                        <td class="px-4 py-2 text-center space-y-3">
+                                        <td class="px-4 py-2 text-right space-y-3">
                                             <x-secondary-hyperlink href="{{ route('processes.process', $process->id) }}" target="" class="!px-2 !py-1 text-[10px]">
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 mr-1">
                                                     <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32l8.4-8.4Z" />
