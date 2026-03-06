@@ -50,5 +50,25 @@ Route::middleware(['auth:sanctum',config('jetstream.auth_session'),'verified',])
         Route::get('/reportmeasurement/{id}', function ($id) {
             return view('processes.measurementreports', compact('id'));
         })->name('measurementreports');
+
+        Route::get('/reporttarimas', function () {
+            return view('processes.measurereporttarimas');
+        })->name('reporttarimas');
+
+        Route::get('/reporttarimas/print', function () {
+            $tarimaId = request('tarima');
+            $reportIds = array_filter(explode(',', request('reports', '')));
+
+            $tarima = \App\Models\Tarima::with('customer')->findOrFail($tarimaId);
+            $reports = \App\Models\MeditionsReport::with(['proccess.tarimaNp.numberPart', 'observations'])
+                ->whereIn('id', $reportIds)
+                ->get();
+
+            return view('processes.measurereporttarimasprint', compact('tarima', 'reports'));
+        })->name('reporttarimas.print');
+
+        Route::get('/reporttarimas/{id}', function ($id) {
+            return view('processes.measurereporttarimadetail', compact('id'));
+        })->name('reporttarimas.detail');
     //
 });

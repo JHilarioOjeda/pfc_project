@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\MeditionsreportObservation;
+use App\Models\Proccess;
 
 class MeditionsReport extends Model
 {
@@ -22,4 +24,14 @@ class MeditionsReport extends Model
     protected $casts = [
         'register_date' => 'datetime',
     ];
+
+    public function observations()
+    {
+        return $this->hasMany(MeditionsreportObservation::class, 'id_medition_report');
+    }
+
+    public function proccess()
+    {
+        return $this->belongsTo(Proccess::class, 'id_proccess');
+    }
 }
