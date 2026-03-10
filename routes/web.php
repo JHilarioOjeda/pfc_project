@@ -24,6 +24,9 @@ Route::middleware(['auth:sanctum',config('jetstream.auth_session'),'verified',])
         Route::get('/admin/customers', function () {
             return view('catalogs.customers');
         });
+        Route::get('/admin/np', function () {
+            return view('catalogs.nps');
+        });
     //
 
     //ALMACEN

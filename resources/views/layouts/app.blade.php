@@ -45,24 +45,25 @@
 
         @livewireScripts
         <script>
-            const runSlimSelectRefresh = () => {
+            const runUiRefresh = () => {
                 if (typeof window.refreshSlimSelects === 'function') window.refreshSlimSelects();
+                if (typeof window.refreshDashboardCharts === 'function') window.refreshDashboardCharts();
             };
 
             // Carga inicial
-            document.addEventListener('DOMContentLoaded', runSlimSelectRefresh);
+            document.addEventListener('DOMContentLoaded', runUiRefresh);
 
             // Para wire:navigate (Livewire v3)
-            document.addEventListener('livewire:navigated', runSlimSelectRefresh);
+            document.addEventListener('livewire:navigated', runUiRefresh);
 
             // Reaplicar después de actualizaciones de Livewire (v3)
             document.addEventListener('livewire:init', () => {
-                runSlimSelectRefresh();
+                runUiRefresh();
 
                 if (window.Livewire && Livewire.hook) {
                     Livewire.hook('commit', ({ succeed }) => {
                         succeed(() => {
-                            setTimeout(runSlimSelectRefresh, 0);
+                            setTimeout(runUiRefresh, 0);
                         });
                     });
                 }
