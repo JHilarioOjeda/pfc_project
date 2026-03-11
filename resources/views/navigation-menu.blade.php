@@ -1,7 +1,7 @@
 <header class="no-print sticky top-0 z-20 bg-white w-full text-gray-600 body-font shadow-sm flex flex-wrap p-5 flex-row items-center justify-between">
-    <a class="flex title-font font-medium items-center text-gray-900 mb-4 lg:mb-0 border-r border-borderseparate pr-5" href="/">
+    <div class="flex title-font font-medium items-center text-gray-900 mb-4 lg:mb-0 border-r border-borderseparate pr-5" href="/">
         <img class="h-12" src="/imgs/logos/principallogo.jpg" alt="logo">
-    </a>
+    </div>
     <!-- Botón del menú móvil -->
     <button id="header-nav" class="lg:hidden">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -42,6 +42,11 @@
                 <a href="/processes" class="inline-flex items-center px-3 py-2 border border-transparent leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-white hover:bg-primarycolor focus:outline-none focus:bg-primarycolor focus:text-white active:bg-primarycolor active:text-white transition ease-in-out duration-150">
                     Procesos
                 </a>
+                @if(Auth::user()->user_type === '1')
+                <a href="/dashboard" class="inline-flex items-center px-3 py-2 border border-transparent leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-white hover:bg-primarycolor focus:outline-none focus:bg-primarycolor focus:text-white active:bg-primarycolor active:text-white transition ease-in-out duration-150">
+                    Reportes
+                </a>
+                @endif
                 <!-- <a href="/reports" class="inline-flex items-center px-3 py-2 border border-transparent leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-white hover:bg-primarycolor focus:outline-none focus:bg-primarycolor focus:text-white active:bg-primarycolor active:text-white transition ease-in-out duration-150">
                     Reportes
                 </a> -->

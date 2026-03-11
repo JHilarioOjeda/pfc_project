@@ -1,6 +1,5 @@
 <div class="containerpric">
     <div class="bg-white rounded-lg shadow-lg my-3 p-3">
-        <p class="text-secondarycolor text-2xl font-bold">Dashboard</p>
 
         <div class="mt-4 flex flex-col md:flex-row md:space-x-4">
             <div class="w-full md:w-1/3">
@@ -12,20 +11,23 @@
                 <input wire:model.live="toDate" type="date" class="inputcatalogues w-full">
             </div>
         </div>
+        <p class="mt-5 italic text-sm text-gray-500">
+            Cambia el rango de fechas para actualizar los reportes. Por defecto se muestran los últimos 7 días.
+        </p>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div class="bg-white rounded-lg shadow-lg p-3">
-            <p class="text-secondarycolor font-semibold">Tarimas ingresadas por día</p>
+            <p class="text-secondarycolor font-semibold">Procesos por estatus</p>
             <div class="mt-3 h-72" wire:ignore>
-                <canvas id="tarimasByDayChart"></canvas>
+                <canvas id="processesByStatusChart"></canvas>
             </div>
         </div>
 
         <div class="bg-white rounded-lg shadow-lg p-3">
-            <p class="text-secondarycolor font-semibold">Procesos por estatus</p>
+            <p class="text-secondarycolor font-semibold">Tarimas ingresadas por día</p>
             <div class="mt-3 h-72" wire:ignore>
-                <canvas id="processesByStatusChart"></canvas>
+                <canvas id="tarimasByDayChart"></canvas>
             </div>
         </div>
     </div>
@@ -45,10 +47,11 @@
                 const data = Array.isArray(payload.data) ? payload.data : [];
 
                 if (chartInstance) {
-                    chartInstance.data.labels = labels;
-                    chartInstance.data.datasets[0].data = data;
-                    chartInstance.update();
-                    return chartInstance;
+                    try {
+                        chartInstance.destroy();
+                    } catch (e) {
+                        console.warn('[Dashboard] Error al destruir chart de tarimas', e);
+                    }
                 }
 
                 return new window.Chart(canvas, {
@@ -59,6 +62,7 @@
                             label: 'Tarimas',
                             data: data,
                             tension: 0.3,
+                            borderColor: '#F27D16',
                         }],
                     },
                     options: {
@@ -82,10 +86,11 @@
                 const data = Array.isArray(payload.data) ? payload.data : [];
 
                 if (chartInstance) {
-                    chartInstance.data.labels = labels;
-                    chartInstance.data.datasets[0].data = data;
-                    chartInstance.update();
-                    return chartInstance;
+                    try {
+                        chartInstance.destroy();
+                    } catch (e) {
+                        console.warn('[Dashboard] Error al destruir chart de procesos', e);
+                    }
                 }
 
                 return new window.Chart(canvas, {
@@ -95,6 +100,7 @@
                         datasets: [{
                             label: 'Procesos',
                             data: data,
+                            backgroundColor: Array.isArray(payload.colors) ? payload.colors : [],
                         }],
                     },
                     options: {
@@ -110,6 +116,8 @@
                     if (typeof previous === 'function') previous();
 
                     if (!window.dashboardChartsInitialData) return;
+
+                    console.log('[Dashboard] Carga inicial charts', window.dashboardChartsInitialData);
 
                     window._tarimasByDayChart = upsertLineChart(
                         window._tarimasByDayChart,
@@ -131,22 +139,37 @@
                 if (window._dashboardChartsHooked) return;
                 window._dashboardChartsHooked = true;
 
-                Livewire.on('dashboard-charts-updated', (payload) => {
-                    if (!payload) return;
+                // En Livewire v3, `$this->dispatch()` dispara un browser event.
+                // Los datos vienen en `event.detail`.
+                window.addEventListener('dashboard-charts-updated', (event) => {
+                    if (!event || !event.detail) return;
 
-                    if (payload.tarimas) {
+                    const { tarimas, processes } = event.detail;
+
+                    console.log('[Dashboard] Evento dashboard-charts-updated recibido', {
+                        tarimas,
+                        processes,
+                    });
+
+                    // Mantener sincronizada la data global usada por refreshDashboardCharts
+                    window.dashboardChartsInitialData = {
+                        tarimas,
+                        processes,
+                    };
+
+                    if (tarimas) {
                         window._tarimasByDayChart = upsertLineChart(
                             window._tarimasByDayChart,
                             'tarimasByDayChart',
-                            payload.tarimas
+                            tarimas
                         );
                     }
 
-                    if (payload.processes) {
+                    if (processes) {
                         window._processesByStatusChart = upsertDoughnutChart(
                             window._processesByStatusChart,
                             'processesByStatusChart',
-                            payload.processes
+                            processes
                         );
                     }
                 });

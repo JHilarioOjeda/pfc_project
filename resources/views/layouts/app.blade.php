@@ -44,6 +44,7 @@
         <livewire:start-checklist.modal />
 
         @livewireScripts
+        @stack('js')
         <script>
             const runUiRefresh = () => {
                 if (typeof window.refreshSlimSelects === 'function') window.refreshSlimSelects();

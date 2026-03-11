@@ -80,9 +80,7 @@ class Charts extends Component
     protected function buildProcessesByStatusChart(Carbon $from, Carbon $to): array
     {
         $rows = DB::table('proccess')
-            ->join('tarima_nps', 'proccess.id_tarima_np', '=', 'tarima_nps.id')
-            ->join('tarima', 'tarima_nps.id_tarima', '=', 'tarima.id')
-            ->whereBetween('tarima.register_date', [$from, $to])
+            ->whereBetween('proccess.created_at', [$from, $to])
             ->select('proccess.status', DB::raw('COUNT(*) as total'))
             ->groupBy('proccess.status')
             ->get();
@@ -108,10 +106,21 @@ class Charts extends Component
             }
         }
 
-        return [
+        $colors = [
+            'pending'   => '#E5E7EB',
+            'inprocess' => '#FDE68A',
+            'finished'  => '#BBF7D0',
+        ];
+
+        $data = [
             'labels' => array_values($baseStatuses),
             'data' => array_values($counts),
+            'colors' => array_values($colors),
         ];
+
+        //dd($data);
+
+        return $data;
     }
 
     public function refreshCharts(bool $dispatch = true): void

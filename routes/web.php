@@ -37,6 +37,12 @@ Route::middleware(['auth:sanctum',config('jetstream.auth_session'),'verified',])
         Route::get('/storage/{id}', function ($id) {
             return view('storage.tarima', compact('id'));
         })->name('storage.tarima');
+
+        Route::get('/storage/{tarima}/document', function ($tarima) {
+            $tarima = \App\Models\Tarima::with(['customer', 'tarimaNps.numberPart'])->findOrFail($tarima);
+
+            return view('formats.tarima-format', compact('tarima'));
+        })->name('storage.tarima.document');
     //
 
     // PROCESOS
