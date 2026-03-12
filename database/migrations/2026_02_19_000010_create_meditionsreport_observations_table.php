@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('meditionsreport_observations', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('id_medition_report');
-            $table->decimal('thickness_in_microns', 10, 0)->nullable();
+            $table->decimal('thickness_in_microns', 10, 6)->nullable();
             $table->text('visual_appearance')->nullable();
             $table->timestamps();
 

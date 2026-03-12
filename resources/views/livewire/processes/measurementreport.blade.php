@@ -133,7 +133,7 @@
                                         @foreach($measurementsList as $index => $item)
                                             <tr class="border-b last:border-b-0">
                                                 <td class="px-1 py-2">{{ $loop->iteration }}</td>
-                                                <td class="px-1 py-2 text-center">{{ $item['thickness_in_microns'] }}</td>
+                                                <td class="px-1 py-2 text-center">{{ round($item['thickness_in_microns'], 4) }}</td>
                                                 <td class="px-1 py-2">{{ $item['visual_appearance'] }}</td>
                                                 <td class="px-1 py-2">
                                                     <x-buttondelete class="!px-2 !py-1 text-xs" wire:click="removeMeasurement({{ $index }})">
@@ -151,14 +151,31 @@
         </div>
 
         <div class="flex flex-row space-x-3 justify-end mt-12">
-            <x-button-primary class="w-fit h-fit" onclick="confirmSaveReport()">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 mr-1">
-                    <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32l8.4-8.4Z" />
-                    <path d="M5.25 5.25a3 3 0 0 0-3 3v10.5a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3V13.5a.75.75 0 0 0-1.5 0v5.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5V8.25a1.5 1.5 0 0 1 1.5-1.5h5.25a.75.75 0 0 0 0-1.5H5.25Z" />
-                </svg>
+            @if($status === 'finished')
+                <x-secondary-hyperlink class="!px-2 !py-1 text-xs" href="{{ route('measurementreports.document', $process_selected->id) }}" target="_blank">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 mr-1">
+                        <path fill-rule="evenodd" d="M10.5 3A1.501 1.501 0 0 0 9 4.5h6A1.5 1.5 0 0 0 13.5 3h-3Zm-2.693.178A3 3 0 0 1 10.5 1.5h3a3 3 0 0 1 2.694 1.678c.497.042.992.092 1.486.15 1.497.173 2.57 1.46 2.57 2.929V19.5a3 3 0 0 1-3 3H6.75a3 3 0 0 1-3-3V6.257c0-1.47 1.073-2.756 2.57-2.93.493-.057.989-.107 1.487-.15Z" clip-rule="evenodd" />
+                    </svg>
+                    Documento
+                </x-secondary-hyperlink>
+            @else
+                <x-secondary-button class="w-fit h-fit" onclick="confirmSaveReport()">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5 mr-1">
+                        <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32l8.4-8.4Z" />
+                        <path d="M5.25 5.25a3 3 0 0 0-3 3v10.5a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3V13.5a.75.75 0 0 0-1.5 0v5.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5V8.25a1.5 1.5 0 0 1 1.5-1.5h5.25a.75.75 0 0 0 0-1.5H5.25Z" />
+                    </svg>
+                    Actualizar reporte
+                </x-secondary-button>
 
-                {{ $reportExists ? 'Actualizar reporte' : 'Guardar reporte' }}
-            </x-button-primary>
+            
+                <x-button-primary class="w-fit h-fit" onclick="confirmFinishReport()">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5 mr-1">
+                        <path fill-rule="evenodd" d="M19.916 4.626a.75.75 0 0 1 .208 1.04l-9 13.5a.75.75 0 0 1-1.154.114l-6-6a.75.75 0 0 1 1.06-1.06l5.353 5.353 8.493-12.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd" />
+                    </svg>
+
+                    Terminar reporte
+                </x-button-primary>
+            @endif
         </div>
     </div>
 </div>
@@ -181,9 +198,9 @@
         });
     }
 
-    function confirmFinishProcessWithReport() {
+    function confirmFinishReport() {
         Swal.fire({
-            title: '¿Deseas terminar este proceso?',
+            title: '¿Deseas terminar este reporte?',
             text: 'Se marcará como Terminado y ya no podrás editarlo.',
             icon: 'warning',
             showCancelButton: true,
@@ -193,7 +210,7 @@
             cancelButtonText: 'Cancelar',
         }).then((result) => {
             if (result.isConfirmed) {
-                @this.call('finishProcessWithReport');
+                @this.call('finishReport');
             }
         });
     }

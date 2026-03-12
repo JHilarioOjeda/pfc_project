@@ -244,7 +244,8 @@ class Tarima extends Component
         try {
             DB::commit();
 
-            $this->tarima_selected->update(['status' => 'finished']);
+            $this->tarima_selected->status = 'finished';
+            $this->tarima_selected->save();
 
             foreach($this->tarima_selected->tarimaNps as $item){
                 $proccess = Proccess::create([

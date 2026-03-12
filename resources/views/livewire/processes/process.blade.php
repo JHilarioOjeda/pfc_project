@@ -165,7 +165,7 @@
                                         @foreach($deadTimesList as $index => $item)
                                             <tr class="border-b last:border-b-0">
                                                 <td class="px-1 py-2">{{ $item['type'] }}</td>
-                                                <td class="px-1 py-2 text-center">{{ $item['hours'] }}</td>
+                                                <td class="px-1 py-2 text-center">{{ round($item['hours'], 2) }}</td>
                                                 <td class="px-1 py-2">
                                                     <x-buttondelete class="!px-2 !py-1 text-xs" wire:click="removeDeadtime({{ $index }})">
                                                         Eliminar

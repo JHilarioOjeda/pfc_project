@@ -15,6 +15,7 @@ return new class extends Migration
             $table->text('method')->nullable();
             $table->timestamp('register_date')->nullable();
             $table->text('document_url')->nullable();
+            $table->text('status')->nullable();
             $table->timestamps();
 
             $table->foreign('id_proccess')

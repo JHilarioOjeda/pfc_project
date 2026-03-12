@@ -15,7 +15,7 @@ class Measurementreport extends Component
 {
     public $idprocess, $process_selected;
 
-    public $method, $requirement;
+    public $method, $requirement, $status;
     public $visual_appearance, $thickness_in_microns;
 
     // Lista de mediciones registradas (cada elemento: id_observation, thickness_in_microns, visual_appearance)
@@ -23,7 +23,7 @@ class Measurementreport extends Component
 
     // Indica si ya existe un reporte de medición para este proceso
     public $reportExists = false;
-
+    
     public function mount($idprocess)
     {
         $this->idprocess = $idprocess;
@@ -36,6 +36,7 @@ class Measurementreport extends Component
                 $this->reportExists = true;
                 $this->method = $report->method;
                 $this->requirement = $report->requirement;
+                $this->status = $report->status;
 
                 $observations = MeditionsreportObservation::where('id_medition_report', $report->id)->get();
                 foreach ($observations as $observation) {
@@ -254,4 +255,31 @@ class Measurementreport extends Component
                 ->show();
         }
     }
+
+    public function finishReport()
+    {
+        DB::beginTransaction();
+
+        try {
+            $report = $this->getOrCreateReport();
+
+            $report->status = 'finished';
+            $report->save();
+
+            DB::commit();
+
+            LivewireAlert::title('Reporte terminado correctamente.')
+                ->success()
+                ->show();
+        
+            $this->status = 'finished';
+        } catch (Throwable $e) {
+            DB::rollBack();
+            Log::error('Error al terminar el reporte de medición: ' . $e->getMessage());
+
+            LivewireAlert::title('Error al terminar el reporte.')
+                ->error()
+                ->show();
+        }
+    }   
 }

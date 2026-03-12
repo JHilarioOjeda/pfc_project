@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('id_proccess');
             $table->text('type')->nullable();
-            $table->decimal('hours', 10, 0)->nullable();
+            $table->decimal('hours', 10, 6)->nullable();
             $table->timestamps();
 
             $table->foreign('id_proccess')
