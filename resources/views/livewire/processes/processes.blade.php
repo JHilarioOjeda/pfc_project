@@ -19,6 +19,7 @@
                         <th class="px-1 py-2 hidden lg:table-cell">Orden de compra</th>
                         <th class="px-1 py-2 hidden lg:table-cell">Orden de fabricación</th>
                         <th class="px-1 py-2 hidden lg:table-cell">Cliente</th>
+                        <th class="px-1 py-2 hidden lg:table-cell">Quien realizo</th>
                         <th class="px-1 py-2 text-center">Estatus</th>
                         <th class="px-1 py-2"></th>
                     </tr>
@@ -42,18 +43,22 @@
                                         <p><span class="font-semibold">Orden de compra:</span> {{$process->tarimaNp->oc}}</p>
                                         <p><span class="font-semibold">Orden de fabricación:</span> {{$process->tarimaNp->of}}</p>
                                         <p><span class="font-semibold">Cliente:</span> {{$process->tarimaNp->tarima->customer->name}}</p>
+                                        <p><span class="font-bold">Quien realizo:</span> {{$process->whomade->name}}</p>
                                     </div>
                                 </td>
                                 
                                 <!-- Columnas visibles solo en pantallas grandes o más grandes -->
-                                <td class="px-4 py-2 hidden lg:table-cell">
+                                <td class="px-1 py-2 hidden lg:table-cell">
                                     {{$process->tarimaNp->oc}}
                                 </td>
-                                <td class="px-4 py-2 hidden lg:table-cell">
+                                <td class="px-1 py-2 hidden lg:table-cell">
                                     {{$process->tarimaNp->of}}
                                 </td>
-                                <td class="px-4 py-2 hidden lg:table-cell">
+                                <td class="px-1 py-2 hidden lg:table-cell">
                                     {{$process->tarimaNp->tarima->customer->name}}
+                                </td>
+                                <td class="px-1 py-2 hidden lg:table-cell">
+                                    {{$process->whomade->name}}
                                 </td>
                                 @switch($process->status)
                                     @case('pending')

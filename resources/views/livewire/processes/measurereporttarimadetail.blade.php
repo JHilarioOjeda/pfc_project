@@ -70,7 +70,7 @@
                                         @foreach ($report['observations'] as $index => $obs)
                                             <tr class="border-b last:border-b-0">
                                                 <td class="px-2 py-1">{{ $index + 1 }}</td>
-                                                <td class="px-2 py-1 text-center">{{ round($obs['thickness_in_microns'], 4) }}</td>
+                                                <td class="px-2 py-1 text-center">{{ round($obs['thickness_in_microns'], 2) }}</td>
                                                 <td class="px-2 py-1">{{ $obs['visual_appearance'] }}</td>
                                             </tr>
                                         @endforeach

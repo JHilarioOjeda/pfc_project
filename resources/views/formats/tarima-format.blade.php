@@ -94,7 +94,15 @@
         </div>
     </div>
 
-    <!-- BOTÓN IMPRIMIR FLOTANTE (pensado para tablet) -->
+    <!-- BOTONES FLOTANTES IMPRESIÓN / PDF (pensado para tablet) -->
+    <x-secondary-button type="button" class="fixed bottom-4 right-32 z-50 px-4 py-3 text-sm flex items-center shadow-lg no-print" onclick="saveTarimaPdf()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5 mr-2">
+            <path d="M6.75 3A2.25 2.25 0 0 0 4.5 5.25v3A2.25 2.25 0 0 0 6.75 10.5h10.5A2.25 2.25 0 0 0 19.5 8.25v-3A2.25 2.25 0 0 0 17.25 3h-10.5Z" />
+            <path fill-rule="evenodd" d="M6.75 12a.75.75 0 0 0 0 1.5h7.5a.75.75 0 0 0 0-1.5h-7.5Z" clip-rule="evenodd" />
+        </svg>
+        Guardar PDF
+    </x-secondary-button>
+
     <x-button-primary type="button" class="fixed bottom-4 right-4 z-50 px-4 py-3 text-sm flex items-center shadow-lg no-print" onclick="window.print()">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5 mr-2">
             <path d="M6.75 3A2.25 2.25 0 0 0 4.5 5.25v3A2.25 2.25 0 0 0 6.75 10.5h10.5A2.25 2.25 0 0 0 19.5 8.25v-3A2.25 2.25 0 0 0 17.25 3h-10.5Z" />
@@ -102,4 +110,53 @@
         </svg>
         Imprimir
     </x-button-primary>
+
+    <script>
+        async function saveTarimaPdf() {
+            const element = document.querySelector('.print-area');
+            if (!element || typeof html2pdf === 'undefined') {
+                alert('No se pudo generar el PDF.');
+                return;
+            }
+
+            const filename = `tarima-{{ $tarima->serial_number }}.pdf`;
+
+                const opt = {
+				margin:       0,
+                filename:     filename,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            };
+
+            try {
+                const worker = html2pdf().set(opt).from(element);
+                const pdfBlob = await worker.outputPdf('blob');
+
+                const formData = new FormData();
+                formData.append('file', pdfBlob, filename);
+                formData.append('type', 'tarima');
+                formData.append('filename', filename);
+
+                const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                const response = await fetch('{{ route('pdf.store') }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': token
+                    },
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    alert('Error al guardar el PDF en el servidor.');
+                    return;
+                }
+
+                alert('PDF guardado correctamente en el servidor.');
+            } catch (e) {
+                console.error(e);
+                alert('Ocurrió un error al generar el PDF.');
+            }
+        }
+    </script>
 </x-app-layout>

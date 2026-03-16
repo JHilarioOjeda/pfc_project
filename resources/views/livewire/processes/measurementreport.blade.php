@@ -133,7 +133,7 @@
                                         @foreach($measurementsList as $index => $item)
                                             <tr class="border-b last:border-b-0">
                                                 <td class="px-1 py-2">{{ $loop->iteration }}</td>
-                                                <td class="px-1 py-2 text-center">{{ round($item['thickness_in_microns'], 4) }}</td>
+                                                <td class="px-1 py-2 text-center">{{ round($item['thickness_in_microns'], 2) }}</td>
                                                 <td class="px-1 py-2">{{ $item['visual_appearance'] }}</td>
                                                 <td class="px-1 py-2">
                                                     <x-buttondelete class="!px-2 !py-1 text-xs" wire:click="removeMeasurement({{ $index }})">

@@ -7,7 +7,15 @@
             </svg>
             Regresar
         </x-secondary-hyperlink>
-        <x-button-primary type="button" class="ml-auto mr-5 !px-3 !py-1 !text-sm flex items-center no-print" onclick="window.print()">
+        <x-secondary-button type="button" class="ml-auto !px-3 !py-1 !text-sm flex items-center mr-2" onclick="saveMeasurementTarimasPdf()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5 mr-2">
+                <path d="M6.75 3A2.25 2.25 0 0 0 4.5 5.25v3A2.25 2.25 0 0 0 6.75 10.5h10.5A2.25 2.25 0 0 0 19.5 8.25v-3A2.25 2.25 0 0 0 17.25 3h-10.5Z" />
+                <path fill-rule="evenodd" d="M6.75 12a3.75 3.75 0 0 0-3.75 3.75v1.5A2.25 2.25 0 0 0 5.25 19.5h13.5A2.25 2.25 0 0 0 21 17.25v-1.5A3.75 3.75 0 0 0 17.25 12H6.75Zm1.5 2.25a.75.75 0 0 0 0 1.5h7.5a.75.75 0 0 0 0-1.5h-7.5Z" clip-rule="evenodd" />
+            </svg>
+            Guardar PDF
+        </x-secondary-button>
+
+        <x-button-primary type="button" class="mr-5 !px-3 !py-1 !text-sm flex items-center no-print" onclick="window.print()">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5 mr-2">
                 <path d="M6.75 3A2.25 2.25 0 0 0 4.5 5.25v3A2.25 2.25 0 0 0 6.75 10.5h10.5A2.25 2.25 0 0 0 19.5 8.25v-3A2.25 2.25 0 0 0 17.25 3h-10.5Z" />
                 <path fill-rule="evenodd" d="M6.75 12a3.75 3.75 0 0 0-3.75 3.75v1.5A2.25 2.25 0 0 0 5.25 19.5h13.5A2.25 2.25 0 0 0 21 17.25v-1.5A3.75 3.75 0 0 0 17.25 12H6.75Zm1.5 2.25a.75.75 0 0 0 0 1.5h7.5a.75.75 0 0 0 0-1.5h-7.5Z" clip-rule="evenodd" />
@@ -145,7 +153,7 @@
                                             @forelse ($report->observations as $index => $observation)
                                                 <tr>
                                                     <td class="px-1 py-0.5 text-center">{{ $index + 1 }}</td>
-                                                    <td class="px-1 py-0.5 text-center">{{ round($observation->thickness_in_microns, 4) }}</td>
+                                                    <td class="px-1 py-0.5 text-center">{{ round($observation->thickness_in_microns, 2) }}</td>
                                                     <td class="px-1 py-0.5 text-center">{{ $observation->visual_appearance }}</td>
                                                 </tr>
                                             @empty
@@ -184,3 +192,51 @@
         </div>
     </div>
 </x-app-layout>
+    <script>
+        async function saveMeasurementTarimasPdf() {
+            const element = document.querySelector('.print-area');
+            if (!element || typeof html2pdf === 'undefined') {
+                alert('No se pudo generar el PDF.');
+                return;
+            }
+
+            const filename = `reporte-mediciones-tarima-{{ optional($tarima)->id }}.pdf`;
+
+                const opt = {
+                    margin:       0,
+                filename:     filename,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'mm', format: 'letter', orientation: 'portrait' }
+            };
+
+            try {
+                const worker = html2pdf().set(opt).from(element);
+                const pdfBlob = await worker.outputPdf('blob');
+
+                const formData = new FormData();
+                formData.append('file', pdfBlob, filename);
+                formData.append('type', 'reporte-mediciones-tarimas');
+                formData.append('filename', filename);
+
+                const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                const response = await fetch('{{ route('pdf.store') }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': token
+                    },
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    alert('Error al guardar el PDF en el servidor.');
+                    return;
+                }
+
+                alert('PDF guardado correctamente en el servidor.');
+            } catch (e) {
+                console.error(e);
+                alert('Ocurrió un error al generar el PDF.');
+            }
+        }
+    </script>

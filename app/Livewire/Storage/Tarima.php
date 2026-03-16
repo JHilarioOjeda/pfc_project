@@ -81,6 +81,14 @@ class Tarima extends Component
             'of_np' => 'required|string',
         ]);
 
+        // Evitar agregar el mismo número de parte más de una vez
+        foreach ($this->numberPartsList as $part) {
+            if ($part['id_number_part'] == $this->id_number_part) {
+                $this->addError('id_number_part', 'Este número de parte ya ha sido agregado a la lista.');
+                return;
+            }
+        }
+
         $numberPart = $this->number_parts->firstWhere('id', $this->id_number_part);
 
         $this->numberPartsList[] = [
