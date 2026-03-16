@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('id_np');
             $table->unsignedBigInteger('id_tarima');
-            $table->decimal('quantity', 10, 0)->nullable();
+            $table->decimal('quantity', 10, 6)->nullable();
             $table->text('oc')->nullable();
             $table->text('of')->nullable();
             $table->boolean('status_cont')->default(false);

@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Proccess extends Model
 {
@@ -27,4 +29,24 @@ class Proccess extends Model
         'start_date' => 'datetime',
         'finished_date' => 'datetime',
     ];
+
+    public function tarimaNp(): BelongsTo
+    {
+        return $this->belongsTo(TarimaNp::class, 'id_tarima_np');
+    }
+
+    public function whomade(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'who_made');
+    }
+
+    public function timeouts(): HasMany
+    {
+        return $this->hasMany(Timeout::class, 'id_proccess');
+    }
+
+    public function line(): BelongsTo
+    {
+        return $this->belongsTo(WorkLine::class, 'id_line');
+    }
 }

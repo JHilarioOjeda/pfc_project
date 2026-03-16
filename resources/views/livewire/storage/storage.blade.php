@@ -23,6 +23,7 @@
                         <th class="px-4 py-2 hidden lg:table-cell">Fecha y hora de recepción</th>
                         <th class="px-4 py-2 hidden lg:table-cell">Cliente</th>
                         <th class="px-4 py-2 hidden lg:table-cell">Quien registro</th>
+                        <th class="px-4 py-2 hidden lg:table-cell">Estatus</th>
                         <th class="px-4 py-2"></th>
                     </tr>
                 </thead>
@@ -40,6 +41,19 @@
                                         <p>
                                             <span class="font-semibold">Quien registró:</span> {{$tarima->registeredBy->name}}
                                         </p>
+                                        <p>
+                                            <span class="font-semibold">Estatus:</span>
+                                            @switch($tarima->status)
+                                                @case('inprocess')
+                                                    <span class="px-2 py-1 rounded-lg text-[10px] uppercase font-semibold bg-yellow-200 text-yellow-600">En proceso de entrada</span>
+                                                    @break
+                                                @case('finished')
+                                                    <span class="px-2 py-1 rounded-lg text-[10px] uppercase font-semibold bg-green-200 text-green-600">Confirmada</span>
+                                                    @break
+                                                @default
+                                                    <span class="px-2 py-1 rounded-lg text-[10px] uppercase font-semibold bg-gray-200 text-gray-600">Desconocido</span>
+                                            @endswitch
+                                        </p>
                                     </div>
                                 </td>
                                 
@@ -53,6 +67,18 @@
                                 <td class="px-4 py-2 hidden lg:table-cell">
                                     {{$tarima->registeredBy->name}}
                                 </td>
+                                <td class="px-4 py-2 text-center hidden lg:table-cell">
+                                    @switch($tarima->status)
+                                        @case('inprocess')
+                                            <span class="px-2 py-1 rounded-lg text-[10px] uppercase font-semibold bg-yellow-200 text-yellow-600">En proceso de entrada</span>
+                                            @break
+                                        @case('finished')
+                                            <span class="px-2 py-1 rounded-lg text-[10px] uppercase font-semibold bg-green-200 text-green-600">Confirmada</span>
+                                            @break
+                                        @default
+                                            <span class="px-2 py-1 rounded-lg text-[10px] uppercase font-semibold bg-gray-200 text-gray-600">Desconocido</span>
+                                    @endswitch
+                                </td>
                                 <td class="px-4 py-2 text-center space-y-3">
                                     <x-secondary-hyperlink class="!px-2 !py-1 text-xs" href="{{ route('storage.tarima', ['id' => $tarima->id]) }}">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 mr-1">
@@ -61,12 +87,14 @@
                                         </svg>
                                         Detalles
                                     </x-secondary-hyperlink>
-                                    <x-secondary-button class="!px-2 !py-1 text-xs">
+                                    @if($tarima->status === 'finished')
+                                    <x-secondary-hyperlink class="!px-2 !py-1 text-xs" href="{{ route('storage.tarima.document', ['tarima' => $tarima->id]) }}" target="">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 mr-1">
                                             <path fill-rule="evenodd" d="M10.5 3A1.501 1.501 0 0 0 9 4.5h6A1.5 1.5 0 0 0 13.5 3h-3Zm-2.693.178A3 3 0 0 1 10.5 1.5h3a3 3 0 0 1 2.694 1.678c.497.042.992.092 1.486.15 1.497.173 2.57 1.46 2.57 2.929V19.5a3 3 0 0 1-3 3H6.75a3 3 0 0 1-3-3V6.257c0-1.47 1.073-2.756 2.57-2.93.493-.057.989-.107 1.487-.15Z" clip-rule="evenodd" />
                                         </svg>
                                         Documento
-                                    </x-secondary-button>
+                                    </x-secondary-hyperlink>
+                                    @endif
                                 </td>
                             </tr>
                         @endforeach

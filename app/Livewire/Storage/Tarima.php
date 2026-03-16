@@ -23,6 +23,7 @@ use App\Models\Customer;
 use App\Models\NumberPart;
 use App\Models\TarimaNp;
 use App\Models\User;
+use App\Models\Proccess;
 
 class Tarima extends Component
 {
@@ -79,6 +80,14 @@ class Tarima extends Component
             'oc_np' => 'required|string',
             'of_np' => 'required|string',
         ]);
+
+        // Evitar agregar el mismo número de parte más de una vez
+        foreach ($this->numberPartsList as $part) {
+            if ($part['id_number_part'] == $this->id_number_part) {
+                $this->addError('id_number_part', 'Este número de parte ya ha sido agregado a la lista.');
+                return;
+            }
+        }
 
         $numberPart = $this->number_parts->firstWhere('id', $this->id_number_part);
 
@@ -234,5 +243,36 @@ class Tarima extends Component
         }
 
         return true;
+    }
+
+    public function confirmEntry()
+    {
+        DB::beginTransaction();
+
+        try {
+            DB::commit();
+
+            $this->tarima_selected->status = 'finished';
+            $this->tarima_selected->save();
+
+            foreach($this->tarima_selected->tarimaNps as $item){
+                $proccess = Proccess::create([
+                    'id_tarima_np' => $item->id,
+                    'status' => 'pending',
+                ]);                
+            }
+
+            LivewireAlert::title('Entrada confirmada correctamente.')
+                    ->success()
+                    ->show();
+
+            return redirect()->route('storage');
+        } catch (Throwable $e) {
+            DB::rollBack();
+            Log::error('Error al confirmar entrada: '.$e->getMessage());
+            LivewireAlert::title('Error al confirmar entrada.')
+                    ->error()
+                    ->show();
+        }
     }
 }

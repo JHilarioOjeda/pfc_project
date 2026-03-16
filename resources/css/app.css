@@ -1,3 +1,7 @@
+@import "@fontsource/figtree/400.css";
+@import "@fontsource/figtree/500.css";
+@import "@fontsource/figtree/600.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -74,4 +78,22 @@ select.team-select + .ss-main .ss-search input {
 .ss-content .ss-list .ss-option:hover {
     background-color: #f27d16 !important; /* bg-primarycolor */
     color: #ffffff;
+}
+
+ @media print {
+    body * {
+        visibility: hidden;
+    }
+    .print-area, .print-area * {
+        visibility: visible;
+    }
+    .print-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        margin: 0;
+    }
+    .no-print {
+        display: none !important;
+    }
 }

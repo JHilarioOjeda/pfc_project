@@ -11,8 +11,8 @@ return new class extends Migration
         Schema::create('proccess', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('id_tarima_np');
-            $table->unsignedBigInteger('who_made');
-            $table->unsignedBigInteger('id_line');
+            $table->unsignedBigInteger('who_made')->nullable();
+            $table->unsignedBigInteger('id_line')->nullable();
             $table->integer('pieces_alreadyproccess')->nullable();
             $table->text('operator_name')->nullable();
             $table->text('document_url')->nullable();

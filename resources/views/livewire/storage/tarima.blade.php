@@ -161,8 +161,8 @@
 
                     Guardar cambios
                 </x-secondary-button>
-                @if($this->allConfirmed)
-                    <x-button-primary class="ml-2" wire:click="saveTarima">
+                @if($this->allConfirmed && $tarima_selected->status != 'finished')
+                    <x-button-primary class="ml-2" onclick="confirmEntry()">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 mr-1">
                             <path fill-rule="evenodd" d="M19.916 4.626a.75.75 0 0 1 .208 1.04l-9 13.5a.75.75 0 0 1-1.154.114l-6-6a.75.75 0 0 1 1.06-1.06l5.353 5.353 8.493-12.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd" />
                         </svg>
@@ -194,18 +194,12 @@
                 searchPlaceholder: 'Buscar',
                 searchText: 'No se encontraron resultados',
             },
-        });
-    }
-
-    document.addEventListener('DOMContentLoaded', function () {
-        initCustomerSelect();
-        initNumberPartSelect();
-    });
-
-    if (window.Livewire && Livewire.hook) {
-        Livewire.hook('message.processed', () => {
-            initCustomerSelect();
-            initNumberPartSelect();
+            events: {
+                afterChange: () => {
+                    // Asegura que Livewire capture el cambio
+                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                },
+            },
         });
     }
 
@@ -226,8 +220,26 @@
                 searchPlaceholder: 'Buscar',
                 searchText: 'No se encontraron resultados',
             },
+            events: {
+                afterChange: () => {
+                    // Asegura que Livewire capture el cambio
+                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                },
+            },
         });
     }
+
+    // Registra un refresco global (el layout lo invoca tras updates de Livewire v3)
+    window.refreshSlimSelects = ((previous) => {
+        return function () {
+            if (typeof previous === 'function') previous();
+            initCustomerSelect();
+            initNumberPartSelect();
+        };
+    })(window.refreshSlimSelects);
+
+    // Disparo inicial por si este script se carga después del DOMContentLoaded
+    window.refreshSlimSelects();
 
     function confirmcount(index) {
         Swal.fire({
@@ -257,6 +269,23 @@
         }).then((result) => {
             if (result.isConfirmed) {
                 @this.call('removeNumberPart', index);
+            }
+        });
+    }
+
+    function confirmEntry() {
+        Swal.fire({
+            title: '¿Deseas confirmar la entrada?',
+            text: 'Una vez confirmada, se registrará en el sistema y SE ENVIARÁ A PROCESOS.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#F27D16',
+            cancelButtonColor: '#EF4444',
+            confirmButtonText: 'Si, confirmar',
+            cancelButtonText: 'Cancelar',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                @this.call('confirmEntry');
             }
         });
     }
