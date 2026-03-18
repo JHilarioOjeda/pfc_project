@@ -60,7 +60,7 @@
                                     {{ optional($item->numberPart)->partnumber }}
                                 </td>
                                 <td class="border border-black px-1 py-1 text-center">
-                                    {{ $item->quantity }}
+                                    {{ round($item->quantity, 2) }}
                                 </td>
                                 <td class="border border-black px-1 py-1 text-center">
                                     {{ optional($item->numberPart)->process }}
