@@ -131,8 +131,8 @@
                                 <td class="border border-black px-1 py-1 text-center">{{ optional($tarima->customer)->name ?? 'N/A' }}</td>
                                 <td class="border border-black px-1 py-1 text-center">{{ $tarimaNp->of ?? 'N/A' }}</td>
                                 <td class="border border-black px-1 py-1 text-center">{{ $numberPart->partnumber ?? 'N/A' }}</td>
-                                <td class="border border-black px-1 py-1 text-center">{{ $tarimaNp->quantity ?? 'N/A' }}</td>
-                                <td class="border border-black px-1 py-1 text-center">{{ $process->pieces_alreadyproccess ?? 0 }}</td>
+                                <td class="border border-black px-1 py-1 text-center">{{ round($tarimaNp->quantity ?? 0, 2) }}</td>
+                                <td class="border border-black px-1 py-1 text-center">{{ round($process->pieces_alreadyproccess ?? 0, 2) }}</td>
                                 <td class="border border-black px-1 py-1 text-center">{{ optional($process->line)->name }}</td>
                                 <td class="border border-black px-1 py-1 text-center">{{ $process->operator_name }}</td>
                                 <td class="border border-black px-1 py-1 text-center">{{ optional($process->start_date)->format('H:i') }}</td>
