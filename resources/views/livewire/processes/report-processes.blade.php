@@ -105,9 +105,9 @@
                                     <td class="px-2 py-2">{{ $numberPart->partnumber ?? 'N/A' }}</td>
                                     <td class="px-2 py-2 hidden md:table-cell">{{ $tarimaNp->of ?? 'N/A' }}</td>
                                     <td class="px-2 py-2 hidden md:table-cell">{{ optional($tarima->customer)->name }}</td>
-                                    <td class="px-2 py-2 hidden md:table-cell">{{ optional($process->tarimaNp->tarima->customer)->name_line ?? '' }}</td>
-                                    <td class="px-2 py-2 hidden md:table-cell">{{ $tarimaNp->quantity ?? 'N/A' }}</td>
-                                    <td class="px-2 py-2 hidden md:table-cell">{{ $process->pieces_alreadyproccess ?? 0 }}</td>
+                                    <td class="px-2 py-2 hidden md:table-cell">{{ optional($process->line)->name ?? '' }}</td>
+                                    <td class="px-2 py-2 hidden md:table-cell">{{ round($tarimaNp->quantity ?? 0, 2) }}</td>
+                                    <td class="px-2 py-2 hidden md:table-cell">{{ round($process->pieces_alreadyproccess ?? 0, 2) }}</td>
                                     <td class="px-2 py-2 hidden md:table-cell">{{ number_format($deadtimeHours, 2) }}</td>
                                 </tr>
                             @empty
