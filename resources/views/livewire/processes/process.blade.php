@@ -84,11 +84,11 @@
                 <div class="flex space-x-10">
                     <div class="flex flex-col w-full lg:w-1/2">
                         <span class="text-secondarycolor text-xs sm:text-sm text-center">Cantidad de piezas a procesar</span>
-                        <span class="text-lg sm:text-xl font-medium text-center">{{ $process_selected->tarimaNp->quantity ?? 'N/A' }}</span>
+                        <span class="text-lg sm:text-xl font-medium text-center">{{ round($process_selected->tarimaNp->quantity ?? 0, 2) }}</span>
                     </div>
                     <div class="flex flex-col w-full lg:w-1/2">
                         <span class="text-secondarycolor text-sm">Cantidad de piezas procesadas:</span>
-                        <input type="number" min="0" max="{{ $process_selected->tarimaNp->quantity ?? 0 }}" wire:model="quantity_processed" class="inputcatalogues w-full">
+                        <input type="number" min="0" max="{{ round($process_selected->tarimaNp->quantity ?? 0, 2) }}" wire:model="quantity_processed" class="inputcatalogues w-full">
                         <span class="text-red-500 text-xs italic">
                             @error('quantity_processed')
                                 {{$message}}
