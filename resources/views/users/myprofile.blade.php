@@ -1,5 +1,4 @@
 <x-app-layout>
-    @livewireStyles
   
     <livewire:users.myprofile/>
     
