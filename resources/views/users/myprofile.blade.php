@@ -1,6 +1,6 @@
 <x-app-layout>
   
-    <livewire:users.myprofile/>
+    <livewire:users.profile/>
     
     @stack('js') 
     
