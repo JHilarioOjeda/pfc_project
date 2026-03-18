@@ -43,7 +43,7 @@
                                         <p><span class="font-semibold">Orden de compra:</span> {{$process->tarimaNp->oc}}</p>
                                         <p><span class="font-semibold">Orden de fabricación:</span> {{$process->tarimaNp->of}}</p>
                                         <p><span class="font-semibold">Cliente:</span> {{$process->tarimaNp->tarima->customer->name}}</p>
-                                        <p><span class="font-bold">Quien realizo:</span> {{$process->whomade->name}}</p>
+                                        <p><span class="font-bold">Quien realizo:</span> {{$process->whomade->name ?? 'N/A'}}</p>
                                     </div>
                                 </td>
                                 
@@ -58,7 +58,7 @@
                                     {{$process->tarimaNp->tarima->customer->name}}
                                 </td>
                                 <td class="px-1 py-2 hidden lg:table-cell">
-                                    {{$process->whomade->name}}
+                                    {{$process->whomade->name ?? 'N/A'}}
                                 </td>
                                 @switch($process->status)
                                     @case('pending')
