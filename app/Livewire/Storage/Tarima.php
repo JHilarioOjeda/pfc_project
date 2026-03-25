@@ -30,7 +30,7 @@ class Tarima extends Component
     use WithFileUploads;
     use WithPagination;
 
-    public $customers, $number_parts, $tarima_selected, $idstorage;
+    public $customers, $number_parts, $tarima_selected, $tarimastatus, $idstorage;
     public $serial_number, $id_customer;
     public $id_number_part, $quantity_np, $oc_np, $of_np;
 
@@ -53,6 +53,7 @@ class Tarima extends Component
         if($this->tarima_selected){
             $this->serial_number = $this->tarima_selected->serial_number;
             $this->id_customer = $this->tarima_selected->id_customer;
+            $this->tarimastatus = $this->tarima_selected->status;
             foreach($this->tarima_selected->tarimaNps as $item){
                 $this->numberPartsList[] = [
                     'id_tarima_np' => $item->id,
@@ -75,16 +76,21 @@ class Tarima extends Component
     public function addNumberPart()
     {
         $this->validate([
-            'id_number_part' => 'required|exists:number_parts,id',
+            'id_number_part' => 'required',
             'quantity_np' => 'required|numeric|min:1',
             'oc_np' => 'required|string',
             'of_np' => 'required|string',
         ]);
 
-        // Evitar agregar el mismo número de parte más de una vez
+        // Evitar agregar el mismo NP con la misma cantidad, OC y OF
         foreach ($this->numberPartsList as $part) {
-            if ($part['id_number_part'] == $this->id_number_part) {
-                $this->addError('id_number_part', 'Este número de parte ya ha sido agregado a la lista.');
+            if (
+                $part['id_number_part'] == $this->id_number_part &&
+                $part['quantity'] == $this->quantity_np &&
+                $part['oc'] == $this->oc_np &&
+                $part['of'] == $this->of_np
+            ) {
+                $this->addError('id_number_part', 'Este número de parte ya fue agregado con la misma cantidad, OC y OF.');
                 return;
             }
         }
@@ -247,6 +253,7 @@ class Tarima extends Component
 
     public function confirmEntry()
     {
+        $this->saveTarima();
         DB::beginTransaction();
 
         try {
