@@ -14,6 +14,8 @@ class Modal extends Component
 
     public $answers = [];
 
+    public $reasons = [];
+
     public $questions = [];
 
     public function mount(): void
@@ -23,6 +25,7 @@ class Modal extends Component
             $key = $question['key'] ?? null;
             if ($key && !array_key_exists($key, $this->answers)) {
                 $this->answers[$key] = null;
+                $this->reasons[$key] = null;
             }
         }
 
@@ -81,9 +84,25 @@ class Modal extends Component
 
             $required = (bool) ($question['required'] ?? true);
             $rules["answers.$key"] = $required ? 'required|in:0,1' : 'nullable|in:0,1';
+
+            $isNo = isset($this->answers[$key]) && (string) $this->answers[$key] === '0';
+            $rules["reasons.$key"] = $isNo ? 'required|string|max:500' : 'nullable|string|max:500';
         }
 
         return $rules;
+    }
+
+    protected function messages(): array
+    {
+        $messages = [];
+        foreach ($this->questions as $question) {
+            $key = $question['key'] ?? null;
+            if (!$key) {
+                continue;
+            }
+            $messages["reasons.$key.required"] = 'La razón es obligatoria cuando la respuesta es No.';
+        }
+        return $messages;
     }
 
     public function save(): void
@@ -121,6 +140,7 @@ class Modal extends Component
                     'label' => $question['label'] ?? $key,
                     'type' => $question['type'] ?? 'boolean',
                     'answer' => $answer,
+                    'reason' => ($answer === false) ? ($this->reasons[$key] ?? null) : null,
                 ];
             }
 

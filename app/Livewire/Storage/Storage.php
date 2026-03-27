@@ -21,6 +21,7 @@ use Log;
 use App\Models\Tarima;
 use App\Models\Customer;
 use App\Models\User;
+use App\Models\Proccess;
 
 class Storage extends Component
 {
@@ -28,6 +29,34 @@ class Storage extends Component
     use WithPagination;
 
     public $search = '';
+
+    public function deleteTarima($id)
+    {
+        try {
+            $tarima = Tarima::findOrFail($id);
+
+            $tarimaNpIds = $tarima->tarimaNps()->pluck('id');
+            $hasProcesses = Proccess::whereIn('id_tarima_np', $tarimaNpIds)->where('status', 'inprocess')->exists();
+
+            if ($hasProcesses) {
+                LivewireAlert::title('No se puede eliminar: la tarima tiene procesos iniciados.')
+                    ->error()
+                    ->show();
+                return;
+            }
+
+            $tarima->delete();
+
+            LivewireAlert::title('Tarima eliminada correctamente.')
+                ->success()
+                ->show();
+        } catch (Throwable $e) {
+            Log::error('Error al eliminar tarima: ' . $e->getMessage());
+            LivewireAlert::title('Error al eliminar la tarima.')
+                ->error()
+                ->show();
+        }
+    }
 
     public function render()
     {

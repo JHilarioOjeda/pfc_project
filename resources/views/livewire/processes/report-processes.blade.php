@@ -20,7 +20,7 @@
             </div>
             <div class="w-full md:w-1/3 flex items-end justify-end">
                 @if($date && $leader_id)
-                    <x-primary-hyperlink href="{{ route('reportprocesses.print', ['date' => $date, 'leader' => $leader_id]) }}" target="_blank" class="w-fit !px-3 !py-2 flex items-center">
+                    <x-primary-hyperlink href="{{ route('reportprocesses.print', ['date' => $date, 'leader' => $leader_id]) }}" target="" class="w-fit !px-3 !py-2 flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 mr-2">
                             <path d="M6.75 3A2.25 2.25 0 0 0 4.5 5.25v3A2.25 2.25 0 0 0 6.75 10.5h10.5A2.25 2.25 0 0 0 19.5 8.25v-3A2.25 2.25 0 0 0 17.25 3h-10.5Z" />
                             <path fill-rule="evenodd" d="M6.75 12a3.75 3.75 0 0 0-3.75 3.75v1.5A2.25 2.25 0 0 0 5.25 19.5h13.5A2.25 2.25 0 0 0 21 17.25v-1.5A3.75 3.75 0 0 0 17.25 12H6.75Zm1.5 2.25a.75.75 0 0 0 0 1.5h7.5a.75.75 0 0 0 0-1.5h-7.5Z" clip-rule="evenodd" />
@@ -80,39 +80,71 @@
                     <table class="table table-hover w-full text-left text-xs md:text-sm">
                         <thead>
                             <tr class="bg-gray-200 font-semibold">
-                                <th class="px-2 py-2 text-center">ID</th>
+                                <th class="px-2 py-2 text-center">ID Proceso</th>
+                                <th class="px-2 py-2 text-center">Carga #</th>
                                 <th class="px-2 py-2">Tarima</th>
                                 <th class="px-2 py-2">NP</th>
                                 <th class="px-2 py-2 hidden md:table-cell">OF</th>
                                 <th class="px-2 py-2 hidden md:table-cell">Cliente</th>
                                 <th class="px-2 py-2 hidden md:table-cell">Línea</th>
-                                <th class="px-2 py-2 hidden md:table-cell">Pzas a procesar</th>
-                                <th class="px-2 py-2 hidden md:table-cell">Pzas procesadas</th>
-                                <th class="px-2 py-2 hidden md:table-cell">Tiempo muerto (hrs)</th>
+                                <th class="px-2 py-2 hidden md:table-cell text-center">Pzas carga</th>
+                                <th class="px-2 py-2 hidden md:table-cell text-center">Estatus carga</th>
+                                <th class="px-2 py-2 hidden md:table-cell text-center">T. muerto (hrs)</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse ($processes as $process)
                                 @php
-                                    $tarimaNp = optional($process->tarimaNp);
-                                    $tarima = optional($tarimaNp->tarima);
+                                    $tarimaNp  = optional($process->tarimaNp);
+                                    $tarima    = optional($tarimaNp->tarima);
                                     $numberPart = optional($tarimaNp->numberPart);
-                                    $deadtimeHours = collect($process->timeouts)->sum('hours');
+                                    $charges   = $process->charges;
                                 @endphp
-                                <tr class="border-t border-gray-200">
-                                    <td class="px-2 py-2 text-center">{{ $process->id }}</td>
-                                    <td class="px-2 py-2">#{{ $tarima->serial_number ?? 'N/A' }}</td>
-                                    <td class="px-2 py-2">{{ $numberPart->partnumber ?? 'N/A' }}</td>
-                                    <td class="px-2 py-2 hidden md:table-cell">{{ $tarimaNp->of ?? 'N/A' }}</td>
-                                    <td class="px-2 py-2 hidden md:table-cell">{{ optional($tarima->customer)->name }}</td>
-                                    <td class="px-2 py-2 hidden md:table-cell">{{ optional($process->line)->name ?? '' }}</td>
-                                    <td class="px-2 py-2 hidden md:table-cell">{{ round($tarimaNp->quantity ?? 0, 2) }}</td>
-                                    <td class="px-2 py-2 hidden md:table-cell">{{ round($process->pieces_alreadyproccess ?? 0, 2) }}</td>
-                                    <td class="px-2 py-2 hidden md:table-cell">{{ number_format($deadtimeHours, 2) }}</td>
-                                </tr>
+                                @if($charges->isEmpty())
+                                    <tr class="border-t border-gray-200">
+                                        <td class="px-2 py-2 text-center">{{ $process->id }}</td>
+                                        <td class="px-2 py-2 text-center text-gray-400 italic">Sin cargas</td>
+                                        <td class="px-2 py-2">#{{ $tarima->serial_number ?? 'N/A' }}</td>
+                                        <td class="px-2 py-2">{{ $numberPart->partnumber ?? 'N/A' }}</td>
+                                        <td class="px-2 py-2 hidden md:table-cell">{{ $tarimaNp->of ?? 'N/A' }}</td>
+                                        <td class="px-2 py-2 hidden md:table-cell">{{ optional($tarima->customer)->name ?? 'N/A' }}</td>
+                                        <td class="px-2 py-2 hidden md:table-cell">{{ optional($process->line)->name ?? '' }}</td>
+                                        <td class="px-2 py-2 hidden md:table-cell text-center">—</td>
+                                        <td class="px-2 py-2 hidden md:table-cell text-center">—</td>
+                                        <td class="px-2 py-2 hidden md:table-cell text-center">—</td>
+                                    </tr>
+                                @else
+                                    @foreach($charges as $ci => $charge)
+                                        @php
+                                            $chargeDeadtime = $charge->timeouts->sum('hours');
+                                            $statusLabel = match($charge->status) {
+                                                'created'   => 'Creada',
+                                                'liberated' => 'Liberada',
+                                                'confirmed' => 'Confirmada',
+                                                default     => $charge->status,
+                                            };
+                                        @endphp
+                                        <tr class="border-t border-gray-200 {{ $ci % 2 === 1 ? 'bg-gray-50' : '' }}">
+                                            @if($ci === 0)
+                                                <td class="px-2 py-2 text-center font-semibold" rowspan="{{ $charges->count() }}">{{ $process->id }}</td>
+                                            @endif
+                                            <td class="px-2 py-2 text-center">#{{ $ci + 1 }}</td>
+                                            @if($ci === 0)
+                                                <td class="px-2 py-2" rowspan="{{ $charges->count() }}">#{{ $tarima->serial_number ?? 'N/A' }}</td>
+                                                <td class="px-2 py-2" rowspan="{{ $charges->count() }}">{{ $numberPart->partnumber ?? 'N/A' }}</td>
+                                                <td class="px-2 py-2 hidden md:table-cell" rowspan="{{ $charges->count() }}">{{ $tarimaNp->of ?? 'N/A' }}</td>
+                                                <td class="px-2 py-2 hidden md:table-cell" rowspan="{{ $charges->count() }}">{{ optional($tarima->customer)->name ?? 'N/A' }}</td>
+                                                <td class="px-2 py-2 hidden md:table-cell" rowspan="{{ $charges->count() }}">{{ optional($process->line)->name ?? '' }}</td>
+                                            @endif
+                                            <td class="px-2 py-2 hidden md:table-cell text-center">{{ round($charge->quantity_pieces, 2) }}</td>
+                                            <td class="px-2 py-2 hidden md:table-cell text-center">{{ $statusLabel }}</td>
+                                            <td class="px-2 py-2 hidden md:table-cell text-center">{{ number_format($chargeDeadtime, 2) }}</td>
+                                        </tr>
+                                    @endforeach
+                                @endif
                             @empty
                                 <tr>
-                                    <td colspan="9" class="px-2 py-4 text-center text-sm text-gray-500">No se encontraron procesos para la fecha y líder seleccionados.</td>
+                                    <td colspan="10" class="px-2 py-4 text-center text-sm text-gray-500">No se encontraron procesos para la fecha y líder seleccionados.</td>
                                 </tr>
                             @endforelse
                         </tbody>

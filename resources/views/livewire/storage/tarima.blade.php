@@ -15,7 +15,7 @@
             <div class="w-full md:flex md:space-x-3 mb-4">
                 <div class="w-full md:w-1/3 mb-2">
                 <p class="text-secondarycolor">Número de tarima:</p>
-                <input wire:model="serial_number" type="text" class="inputcatalogues w-full">
+                <input wire:model="serial_number" type="text" class="inputcatalogues w-full" @if($tarimastatus === 'finished') disabled @endif>
                 <span class="text-red-500 text-xs italic">
                     @error('serial_number')
                         {{$message}}
@@ -24,7 +24,7 @@
             </div>
             <div class="w-full md:w-1/3">
                 <p class="text-secondarycolor">Cliente:</p>
-                <select wire:model="id_customer" id="customer_select" class="inputcatalogues w-full">
+                <select wire:model="id_customer" id="customer_select" class="inputcatalogues w-full" @if($tarimastatus === 'finished') disabled @endif>
                     <option value="">Selecciona un cliente</option>
                     @foreach ($customers as $customer)
                         <option value="{{$customer->id}}" @selected($id_customer == $customer->id)>{{$customer->company_name}}</option>
@@ -38,6 +38,7 @@
             </div>
         </div>
 
+        @if($tarimastatus !== 'finished')
         <div class="w-full">
             <p class="font-semibold text-primarycolor">NP  a registrar</p>
             <div class="w-full flex space-x-3">
@@ -46,7 +47,7 @@
                     <select wire:model="id_number_part" id="number_part_select" class="inputcatalogues w-full">
                         <option value="">Seleccionar...</option>
                         @foreach ($number_parts as $number_part)
-                            <option value="{{$number_part->id}}">{{$number_part->partnumber}}</option>
+                            <option value="{{$number_part->id}}" @selected($id_number_part == $number_part->id)>{{$number_part->partnumber}}</option>
                         @endforeach
                     </select>
                     <span class="text-red-500 text-xs italic">
@@ -57,7 +58,7 @@
                 </div>
                 <div class="w-full md:w-1/3">
                     <p class="text-secondarycolor">Cantidad:</p>
-                    <input wire:model="quantity_np" type="text" class="inputcatalogues w-full">
+                    <input wire:model="quantity_np" type="number" class="inputcatalogues w-full">
                     <span class="text-red-500 text-xs italic">
                         @error('quantity_np')
                             {{$message}}
@@ -92,6 +93,7 @@
                 </x-secondary-button>
             </div>
         </div>
+        @endif
 
         <div class="w-full mt-4">
             <p class="font-semibold text-primarycolor">NPS registrados</p>
@@ -125,9 +127,11 @@
                                                     <span class="bg-green-200 py-1 px-2 text-xs rounded-lg italic font-semibold mr-2 uppercase"><span class="text-green-600">conteo confirmado</span></span>
                                                 @endif
                                             @endif
+                                            @if($tarimastatus !== 'finished')
                                             <x-buttondelete class="!px-2 !py-1 text-xs" onclick="confirmremovenp({{ $index }})">
                                                 Eliminar
                                             </x-buttondelete>
+                                            @endif
                                         </td>
                                     </tr>
                                 @endforeach
@@ -154,13 +158,15 @@
                     Crear entrada
                 </x-button-primary>
             @else
-                <x-secondary-button class="ml-auto" wire:click="saveTarima">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 mr-1">
-                    <path fill-rule="evenodd" d="M12 2.25a.75.75 0 0 1 .75.75v11.69l3.22-3.22a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 1 1 1.06-1.06l3.22 3.22V3a.75.75 0 0 1 .75-.75Zm-9 13.5a.75.75 0 0 1 .75.75v2.25a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5V16.5a.75.75 0 0 1 1.5 0v2.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V16.5a.75.75 0 0 1 .75-.75Z" clip-rule="evenodd" />
-                    </svg>
+                @if($tarimastatus !== 'finished')
+                    <x-secondary-button class="ml-auto" wire:click="saveTarima">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 mr-1">
+                        <path fill-rule="evenodd" d="M12 2.25a.75.75 0 0 1 .75.75v11.69l3.22-3.22a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 1 1 1.06-1.06l3.22 3.22V3a.75.75 0 0 1 .75-.75Zm-9 13.5a.75.75 0 0 1 .75.75v2.25a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5V16.5a.75.75 0 0 1 1.5 0v2.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V16.5a.75.75 0 0 1 .75-.75Z" clip-rule="evenodd" />
+                        </svg>
 
-                    Guardar cambios
-                </x-secondary-button>
+                        Guardar cambios
+                    </x-secondary-button>
+                @endif
                 @if($this->allConfirmed && $tarima_selected->status != 'finished')
                     <x-button-primary class="ml-2" onclick="confirmEntry()">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 mr-1">

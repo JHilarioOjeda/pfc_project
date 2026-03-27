@@ -50,6 +50,12 @@
                                                 @case(3)
                                                     Líder de producción
                                                     @break
+                                                @case(4)
+                                                    Personal de Secado
+                                                    @break
+                                                @case(5)
+                                                    Calidad
+                                                    @break
                                                 @default
                                                     Desconocido
                                             @endswitch
@@ -82,6 +88,12 @@
                                             @break
                                         @case(3)
                                             Líder de producción
+                                            @break
+                                        @case(4)
+                                            Personal de Secado
+                                            @break
+                                        @case(5)
+                                            Calidad
                                             @break
                                         @default
                                             Desconocido
@@ -207,6 +219,8 @@
                                     <option value="1">Administrador</option>
                                     <option value="2">Almacenista</option>
                                     <option value="3">Líder de producción</option>
+                                    <option value="4">Personal de Secado</option>
+                                    <option value="5">Calidad</option>
                                 </select>
                                 <div>
                                     <span class="text-red-500 text-xs italic">

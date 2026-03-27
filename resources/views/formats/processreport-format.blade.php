@@ -104,44 +104,72 @@
                     <thead class="bg-gray-100">
                         <tr>
                             <th class="border border-black px-1 py-1 text-center">ID Proceso</th>
+                            <th class="border border-black px-1 py-1 text-center">Carga</th>
                             <th class="border border-black px-1 py-1 text-center">Tarima</th>
                             <th class="border border-black px-1 py-1 text-center">Cliente</th>
                             <th class="border border-black px-1 py-1 text-center">OF</th>
                             <th class="border border-black px-1 py-1 text-center">No. de parte</th>
-                            <th class="border border-black px-1 py-1 text-center">Cantidad a procesar</th>
-                            <th class="border border-black px-1 py-1 text-center">Pzas procesadas</th>
+                            <th class="border border-black px-1 py-1 text-center">Pzas carga</th>
                             <th class="border border-black px-1 py-1 text-center">Línea</th>
                             <th class="border border-black px-1 py-1 text-center">Operador(es)</th>
                             <th class="border border-black px-1 py-1 text-center">Inicio</th>
                             <th class="border border-black px-1 py-1 text-center">Fin</th>
-                            <th class="border border-black px-1 py-1 text-center">Tiempo muerto (hrs)</th>
+                            <th class="border border-black px-1 py-1 text-center">T. muerto (hrs)</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($processes as $process)
                             @php
-                                $tarimaNp = optional($process->tarimaNp);
-                                $tarima = optional($tarimaNp->tarima);
+                                $tarimaNp   = optional($process->tarimaNp);
+                                $tarima     = optional($tarimaNp->tarima);
                                 $numberPart = optional($tarimaNp->numberPart);
-                                $deadtimeHours = collect($process->timeouts)->sum('hours');
+                                $charges    = $process->charges;
                             @endphp
-                            <tr>
-                                <td class="border border-black px-1 py-1 text-center">{{ $process->id }}</td>
-                                <td class="border border-black px-1 py-1 text-center">#{{ $tarima->serial_number ?? 'N/A' }}</td>
-                                <td class="border border-black px-1 py-1 text-center">{{ optional($tarima->customer)->name ?? 'N/A' }}</td>
-                                <td class="border border-black px-1 py-1 text-center">{{ $tarimaNp->of ?? 'N/A' }}</td>
-                                <td class="border border-black px-1 py-1 text-center">{{ $numberPart->partnumber ?? 'N/A' }}</td>
-                                <td class="border border-black px-1 py-1 text-center">{{ round($tarimaNp->quantity ?? 0, 2) }}</td>
-                                <td class="border border-black px-1 py-1 text-center">{{ round($process->pieces_alreadyproccess ?? 0, 2) }}</td>
-                                <td class="border border-black px-1 py-1 text-center">{{ optional($process->line)->name }}</td>
-                                <td class="border border-black px-1 py-1 text-center">{{ $process->operator_name }}</td>
-                                <td class="border border-black px-1 py-1 text-center">{{ optional($process->start_date)->format('H:i') }}</td>
-                                <td class="border border-black px-1 py-1 text-center">{{ optional($process->finished_date)->format('H:i') }}</td>
-                                <td class="border border-black px-1 py-1 text-center">{{ round($deadtimeHours, 2) }}</td>
-                            </tr>
+                            @if($charges->isEmpty())
+                                <tr>
+                                    <td class="border border-black px-1 py-1 text-center">{{ $process->id }}</td>
+                                    <td class="border border-black px-1 py-1 text-center text-gray-400 italic">—</td>
+                                    <td class="border border-black px-1 py-1 text-center">#{{ $tarima->serial_number ?? 'N/A' }}</td>
+                                    <td class="border border-black px-1 py-1 text-center">{{ optional($tarima->customer)->name ?? 'N/A' }}</td>
+                                    <td class="border border-black px-1 py-1 text-center">{{ $tarimaNp->of ?? 'N/A' }}</td>
+                                    <td class="border border-black px-1 py-1 text-center">{{ $numberPart->partnumber ?? 'N/A' }}</td>
+                                    <td class="border border-black px-1 py-1 text-center">—</td>
+                                    <td class="border border-black px-1 py-1 text-center">{{ optional($process->line)->name }}</td>
+                                    <td class="border border-black px-1 py-1 text-center">{{ $process->operator_name }}</td>
+                                    <td class="border border-black px-1 py-1 text-center">{{ optional($process->start_date)->format('H:i') }}</td>
+                                    <td class="border border-black px-1 py-1 text-center">{{ optional($process->finished_date)->format('H:i') }}</td>
+                                    <td class="border border-black px-1 py-1 text-center">0.00</td>
+                                </tr>
+                            @else
+                                @foreach($charges as $ci => $charge)
+                                    @php
+                                        $totalProcessDeadtime = $charges->sum(fn($c) => $c->timeouts->sum('hours'));
+                                    @endphp
+                                    <tr>
+                                        @if($ci === 0)
+                                            <td class="border border-black px-1 py-1 text-center font-semibold" rowspan="{{ $charges->count() }}">{{ $process->id }}</td>
+                                        @endif
+                                        <td class="border border-black px-1 py-1 text-center">#{{ $ci + 1 }}</td>
+                                        @if($ci === 0)
+                                            <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">#{{ $tarima->serial_number ?? 'N/A' }}</td>
+                                            <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ optional($tarima->customer)->name ?? 'N/A' }}</td>
+                                            <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ $tarimaNp->of ?? 'N/A' }}</td>
+                                            <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ $numberPart->partnumber ?? 'N/A' }}</td>
+                                        @endif
+                                        <td class="border border-black px-1 py-1 text-center">{{ round($charge->quantity_pieces, 2) }}</td>
+                                        @if($ci === 0)
+                                            <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ optional($process->line)->name }}</td>
+                                            <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ $process->operator_name }}</td>
+                                            <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ optional($process->start_date)->format('H:i') }}</td>
+                                            <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ optional($process->finished_date)->format('H:i') }}</td>
+                                            <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ number_format($totalProcessDeadtime, 2) }}</td>
+                                        @endif
+                                    </tr>
+                                @endforeach
+                            @endif
                         @empty
                             <tr>
-                                <td colspan="11" class="border border-black px-2 py-4 text-center text-gray-500">No se encontraron procesos para la fecha y líder seleccionados.</td>
+                                <td colspan="12" class="border border-black px-2 py-4 text-center text-gray-500">No se encontraron procesos para la fecha y líder seleccionados.</td>
                             </tr>
                         @endforelse
                     </tbody>

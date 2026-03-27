@@ -7,7 +7,7 @@
 
         <div class="pb-4 w-full flex">
             <x-search-input class="lg:w-1/3 w-3/4" wireModel="search" placeholder="Buscar..." />
-            <x-primary-hyperlink href="{{ route('storage.tarima', ['id' => 0]) }}" target=" " class="my-auto ml-auto whitespace-nowrap">
+            <x-primary-hyperlink href="{{ route('storage.tarima', ['id' => 0]) }}" target="" class="my-auto ml-auto whitespace-nowrap">
                 <svg class="size-6 mr-2 font-semibold" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="-10 -200 970 960">
                     <path fill="currentColor" d="M440 328h-240v-80h240v-240h80v240h240v80h-240v240h-80v-240z"></path>
                  </svg>
@@ -95,6 +95,9 @@
                                         Documento
                                     </x-secondary-hyperlink>
                                     @endif
+                                    <x-buttondelete onclick="confirmDeleteTarima({{ $tarima->id }})">
+                                        Eliminar
+                                    </x-buttondele>
                                 </td>
                             </tr>
                         @endforeach
@@ -108,5 +111,26 @@
            {{ $tarimas->links() }}
         </div>
     </div>
+
+    @push('js')
+        <script>
+            function confirmDeleteTarima(id) {
+                Swal.fire({
+                    title: '¿Seguro que deseas eliminar esta tarima?',
+                    text: 'Esta acción no se puede deshacer.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#EF4444',
+                    cancelButtonColor: '#6B7280',
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        @this.call('deleteTarima', id);
+                    }
+                })
+            }
+        </script>
+    @endpush
 
 </div>

@@ -5,62 +5,47 @@ namespace App\Livewire\Processes;
 use Livewire\Component;
 use DB;
 use Livewire\WithPagination;
-use Illuminate\Support\Facades\Storage as StorageDisk;
 use Livewire\WithFileUploads;
-use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Facades\Hash;
-use Aws\S3\S3Client;
-use Aws\S3\Exception\S3Exception;
-use RealRashid\SweetAlert\Facades\Alert;
 use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rules\Password;
 use Auth;
 use Throwable;
 use Log;
-use App\Models\Tarima as TarimaModel;
-use App\Models\Customer;
-use App\Models\NumberPart;
-use App\Models\TarimaNp;
-use App\Models\User;
 use App\Models\Proccess;
 use App\Models\WorkLine;
 use App\Models\Timeout;
+use App\Models\Charge;
 
 class Process extends Component
 {
     use WithFileUploads;
     use WithPagination;
 
-    public  $idprocess, $process_selected;
+    public $idprocess, $process_selected;
     public $lines = [], $id_line;
-    public $operator_name, $quantity_processed;
+    public $operator_name;
 
-    public $deadtime, $deadtime_hours;
-    public $deadTimesList = [];
+    // Cargas
+    public $chargesList = [];
+    public $new_charge_quantity;
 
-    public function mount($idprocess){
-        $this->process_selected = Proccess::find($this->idprocess);
+    // Tiempos muertos por carga (indexados por charge index)
+    public $deadtime = [], $deadtime_hours = [];
+    // Ã­ndice de carga activo para tiempos muertos (null = ninguno expandido)
+    public $deadtimeOpenCharge = null;
+
+    public function mount($idprocess)
+    {
+        $this->idprocess = $idprocess;
+        $this->process_selected = Proccess::with(['tarimaNp.numberPart', 'tarimaNp.tarima.customer'])->find($this->idprocess);
         $this->lines = WorkLine::all();
 
-        // Cargar valores iniciales del proceso
         if ($this->process_selected) {
             $this->id_line = $this->process_selected->id_line;
             $this->operator_name = $this->process_selected->operator_name;
-            $this->quantity_processed = $this->process_selected->pieces_alreadyproccess;
-
-            // Cargar tiempos muertos existentes desde BD
-            $existingTimeouts = Timeout::where('id_proccess', $this->process_selected->id)->get();
-            foreach ($existingTimeouts as $timeout) {
-                $this->deadTimesList[] = [
-                    'id_timeout' => $timeout->id,
-                    'type' => $timeout->type,
-                    'hours' => $timeout->hours,
-                ];
-            }
+            $this->loadCharges();
         }
 
-        if($this->process_selected->start_date == null){
+        if ($this->process_selected && $this->process_selected->start_date == null) {
             $this->process_selected->start_date = now();
             $this->process_selected->who_made = Auth::user()->id;
             $this->process_selected->status = 'inprocess';
@@ -68,52 +53,55 @@ class Process extends Component
         }
     }
 
-    public function render(){
+    protected function loadCharges(): void
+    {
+        $this->chargesList = [];
+        $charges = Charge::with('timeouts')
+            ->where('id_proccess', $this->process_selected->id)
+            ->orderBy('id')
+            ->get();
 
-        return view('livewire.processes.process');
+        foreach ($charges as $charge) {
+            $timeouts = [];
+            foreach ($charge->timeouts as $t) {
+                $timeouts[] = [
+                    'id_timeout' => $t->id,
+                    'type'       => $t->type,
+                    'hours'      => $t->hours,
+                ];
+            }
+            $this->chargesList[] = [
+                'id_charge'        => $charge->id,
+                'quantity_pieces'  => $charge->quantity_pieces,
+                'status'           => $charge->status,
+                'timeouts'         => $timeouts ?? [],
+            ];
+        }
     }
 
-    protected function validateProcessFields(): void
+    public function render()
     {
-        if (!$this->process_selected) {
-            return;
-        }
+        $totalPiezasCargas = collect($this->chargesList)->sum('quantity_pieces');
+        $piezasTotales     = (float) optional(optional($this->process_selected)->tarimaNp)->quantity;
+        $piezasRestantes   = max(0, $piezasTotales - $totalPiezasCargas);
 
-        $maxPieces = optional(optional($this->process_selected)->tarimaNp)->quantity;
+        return view('livewire.processes.process', compact('piezasRestantes', 'piezasTotales'));
+    }
 
-        $rules = [
+    // Proceso general
+    public function updateProcessData()
+    {
+        $this->validate([
             'id_line' => 'required|exists:work_lines,id',
-            'quantity_processed' => 'required|numeric|min:0',
-        ];
-
-        if ($maxPieces !== null) {
-            $rules['quantity_processed'] .= '|max:' . $maxPieces;
-        }
-
-        $this->validate($rules, [], [
-            'id_line' => 'Línea',
-            'operator_name' => 'Nombre(s) de operador(es)',
-            'quantity_processed' => 'Cantidad de piezas procesadas',
+        ], [], [
+            'id_line' => 'LÃ­nea',
         ]);
-    }
 
-    protected function persistProcessBasicData(): void
-    {
-        if (!$this->process_selected) {
-            return;
-        }
+        if (!$this->process_selected) return;
 
         $this->process_selected->id_line = $this->id_line;
         $this->process_selected->operator_name = $this->operator_name;
-        $this->process_selected->pieces_alreadyproccess = $this->quantity_processed;
         $this->process_selected->save();
-    }
-
-    public function updateProcessData()
-    {
-        $this->validateProcessFields();
-
-        $this->persistProcessBasicData();
 
         LivewireAlert::title('Datos del proceso actualizados correctamente.')
             ->success()
@@ -122,27 +110,32 @@ class Process extends Component
 
     public function finishProcess()
     {
-        if (!$this->process_selected) {
+        if (!$this->process_selected) return;
+
+        $totalPiezasCargas = collect($this->chargesList)->sum('quantity_pieces');
+        $piezasTotales     = (float) optional(optional($this->process_selected)->tarimaNp)->quantity;
+
+        if ($totalPiezasCargas < $piezasTotales) {
+            LivewireAlert::title('AÃºn quedan piezas restantes por asignar a cargas.')
+                ->warning()
+                ->show();
             return;
         }
 
-        $this->validateProcessFields();
-
-        $maxPieces = optional(optional($this->process_selected)->tarimaNp)->quantity;
-
-        if ($maxPieces !== null && (float) $this->quantity_processed !== (float) $maxPieces) {
-            LivewireAlert::title('La cantidad de piezas procesadas debe ser igual a la cantidad a procesar para terminar el proceso.')
+        $pendientes = collect($this->chargesList)->filter(fn($c) => $c['status'] !== 'confirmed')->count();
+        if ($pendientes > 0) {
+            LivewireAlert::title('Todas las cargas deben estar confirmadas antes de terminar el proceso.')
                 ->warning()
                 ->show();
             return;
         }
 
         DB::beginTransaction();
-
         try {
-            $this->persistProcessBasicData();
-
-            $this->process_selected->status = 'finished';
+            $this->process_selected->id_line       = $this->id_line;
+            $this->process_selected->operator_name = $this->operator_name;
+            $this->process_selected->pieces_alreadyproccess = (int) $totalPiezasCargas;
+            $this->process_selected->status        = 'finished';
             $this->process_selected->finished_date = now();
             $this->process_selected->save();
 
@@ -156,27 +149,113 @@ class Process extends Component
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error('Error al terminar el proceso: ' . $e->getMessage());
-
             LivewireAlert::title('Error al terminar el proceso.')
                 ->error()
                 ->show();
         }
     }
 
+    // Cargas
+    public function addCharge()
+    {
+        $this->validate([
+            'new_charge_quantity' => 'required|numeric|min:1',
+        ], [], [
+            'new_charge_quantity' => 'Cantidad de piezas',
+        ]);
+
+        $totalPiezasCargas = collect($this->chargesList)->sum('quantity_pieces');
+        $piezasTotales     = (float) optional(optional($this->process_selected)->tarimaNp)->quantity;
+        $restantes         = $piezasTotales - $totalPiezasCargas;
+
+        if ((float) $this->new_charge_quantity > $restantes) {
+            $this->addError('new_charge_quantity', "No pueden asignarse mÃ¡s piezas de las restantes ({$restantes}).");
+            return;
+        }
+
+        $charge = Charge::create([
+            'id_proccess'     => $this->process_selected->id,
+            'quantity_pieces' => $this->new_charge_quantity,
+            'status'          => 'created',
+            'who_made'        => Auth::user()->id,
+            'made_date'       => now(),
+        ]);
+
+        $this->chargesList[] = [
+            'id_charge'       => $charge->id,
+            'quantity_pieces' => $charge->quantity_pieces,
+            'status'          => $charge->status,
+            'timeouts'        => [],
+        ];
+        $this->reset('new_charge_quantity');
+    }
+
+    public function liberateCharge($index)
+    {
+        $item = $this->chargesList[$index] ?? null;
+        if (!$item || $item['status'] !== 'created') return;
+
+        Charge::where('id', $item['id_charge'])->update([
+            'status'    => 'liberated',
+            'who_free'  => Auth::user()->id,
+            'free_date' => now(),
+        ]);
+
+        $this->chargesList[$index]['status'] = 'liberated';
+    }
+
+    public function confirmCharge($index)
+    {
+        $item = $this->chargesList[$index] ?? null;
+        if (!$item || $item['status'] !== 'liberated') return;
+
+        Charge::where('id', $item['id_charge'])->update([
+            'status'       => 'confirmed',
+            'who_confirms' => Auth::user()->id,
+            'confirm_date' => now(),
+        ]);
+
+        $this->chargesList[$index]['status'] = 'confirmed';
+    }
+
+    public function deleteCharge($index)
+    {
+        $item = $this->chargesList[$index] ?? null;
+        if (!$item) return;
+
+        Charge::find($item['id_charge'])?->delete();
+
+        unset($this->chargesList[$index]);
+        $this->chargesList = array_values($this->chargesList);
+
+        if ($this->deadtimeOpenCharge === $index) {
+            $this->deadtimeOpenCharge = null;
+        }
+    }
+
+    public function toggleDeadtimePanel($index)
+    {
+        $this->deadtimeOpenCharge = ($this->deadtimeOpenCharge === $index) ? null : $index;
+    }
+
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // Tiempos muertos
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
     protected function getDeadtimeOptions(): array
     {
         return [
-            '1' => 'Secado deficiente',
-            '2' => 'Mesa llena de piezas',
-            '3' => 'Falta de material',
-            '4' => 'Falta de personal',
-            '5' => 'Reproceso de piezas',
-            '6' => 'Tiempo excesivo desengrase',
-            '7' => 'Ajuste de soluciones',
-            '8' => 'Cambio de soluciones',
-            '9' => 'Evento social',
+            '1'  => 'Secado deficiente',
+            '2'  => 'Mesa llena de piezas',
+            '3'  => 'Falta de material',
+            '4'  => 'Falta de personal',
+            '5'  => 'Reproceso de piezas',
+            '6'  => 'Tiempo excesivo desengrase',
+            '7'  => 'Ajuste de soluciones',
+            '8'  => 'Cambio de soluciones',
+            '9'  => 'Evento social',
             '10' => 'Falla de equipo',
-            '11' => 'Falta de energía eléctrica',
+            '11' => 'Falta de energÃ­a elÃ©ctrica',
             '12' => 'Llenado de tinas',
             '13' => 'Limpieza de piezas',
             '14' => 'Cambio de tina y/o ganchos',
@@ -185,58 +264,50 @@ class Process extends Component
 
     protected function getDeadtimeLabel($value): string
     {
-        $options = $this->getDeadtimeOptions();
-        return $options[(string) $value] ?? (string) $value;
+        return $this->getDeadtimeOptions()[(string) $value] ?? (string) $value;
     }
 
-    public function addDeadtime()
+    public function addDeadtime($chargeIndex)
     {
         $this->validate([
-            'deadtime' => 'required',
-            'deadtime_hours' => 'required|numeric|min:0.01',
+            "deadtime.{$chargeIndex}"       => 'required',
+            "deadtime_hours.{$chargeIndex}" => 'required|numeric|min:0.01',
         ], [], [
-            'deadtime' => 'Razón de tiempo muerto',
-            'deadtime_hours' => 'Tiempo en horas',
+            "deadtime.{$chargeIndex}"       => 'RazÃ³n de tiempo muerto',
+            "deadtime_hours.{$chargeIndex}" => 'Tiempo en horas',
         ]);
 
-        if (!$this->process_selected) {
-            return;
-        }
+        $item = $this->chargesList[$chargeIndex] ?? null;
+        if (!$item) return;
 
-        $label = $this->getDeadtimeLabel($this->deadtime);
+        $label = $this->getDeadtimeLabel($this->deadtime[$chargeIndex]);
 
-        // Guardar inmediatamente en BD
         $timeout = Timeout::create([
-            'id_proccess' => $this->process_selected->id,
-            'type' => $label,
-            'hours' => $this->deadtime_hours,
+            'id_charge' => $item['id_charge'],
+            'type'      => $label,
+            'hours'     => $this->deadtime_hours[$chargeIndex],
         ]);
 
-        $this->deadTimesList[] = [
+        $this->chargesList[$chargeIndex]['timeouts'][] = [
             'id_timeout' => $timeout->id,
-            'type' => $timeout->type,
-            'hours' => $timeout->hours,
+            'type'       => $timeout->type,
+            'hours'      => $timeout->hours,
         ];
 
-        $this->reset(['deadtime', 'deadtime_hours']);
+        $this->deadtime[$chargeIndex]       = null;
+        $this->deadtime_hours[$chargeIndex] = null;
     }
 
-    public function removeDeadtime($index)
+    public function removeDeadtime($chargeIndex, $timeoutIndex)
     {
-        if (!isset($this->deadTimesList[$index])) {
-            return;
-        }
-
-        $item = $this->deadTimesList[$index];
+        $item = $this->chargesList[$chargeIndex]['timeouts'][$timeoutIndex] ?? null;
+        if (!$item) return;
 
         if (!empty($item['id_timeout'])) {
-            $timeout = Timeout::find($item['id_timeout']);
-            if ($timeout) {
-                $timeout->delete();
-            }
+            Timeout::find($item['id_timeout'])?->delete();
         }
 
-        unset($this->deadTimesList[$index]);
-        $this->deadTimesList = array_values($this->deadTimesList);
+        unset($this->chargesList[$chargeIndex]['timeouts'][$timeoutIndex]);
+        $this->chargesList[$chargeIndex]['timeouts'] = array_values($this->chargesList[$chargeIndex]['timeouts']);
     }
 }
