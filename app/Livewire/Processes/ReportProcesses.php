@@ -23,13 +23,14 @@ class ReportProcesses extends Component
     {
         $this->date = now()->toDateString();
 
+        // Carga líderes y administradores para el dropdown 
         $this->leaders = User::query()
-            ->where('user_type', 3)
+            ->whereIn('user_type', [1, 3])
             ->orderBy('name')
             ->get();
 
         $authUser = Auth::user();
-        if ($authUser && (int) ($authUser->user_type ?? 0) === 3) {
+        if ($authUser && in_array((int) ($authUser->user_type ?? 0), [1, 3])) {
             $this->leader_id = $authUser->id;
         } elseif ($this->leaders->isNotEmpty()) {
             $this->leader_id = $this->leaders->first()->id;
@@ -55,23 +56,25 @@ class ReportProcesses extends Component
             ->first();
 
         $this->processes = Proccess::query()
-            ->with(['tarimaNp.tarima.customer', 'tarimaNp.numberPart', 'whomade', 'timeouts'])
+            ->with(['tarimaNp.tarima.customer', 'tarimaNp.numberPart', 'whomade', 'line', 'charges.timeouts'])
             ->where('who_made', $this->leader_id)
             ->whereDate('start_date', $this->date)
             ->orderBy('id')
             ->get();
 
         foreach ($this->processes as $process) {
-            foreach ($process->timeouts as $timeout) {
-                $label = (string) $timeout->type;
-                $hours = (float) $timeout->hours;
+            foreach ($process->charges as $charge) {
+                foreach ($charge->timeouts as $timeout) {
+                    $label = (string) $timeout->type;
+                    $hours = (float) $timeout->hours;
 
-                if (!isset($this->deadtimeByType[$label])) {
-                    $this->deadtimeByType[$label] = 0.0;
+                    if (!isset($this->deadtimeByType[$label])) {
+                        $this->deadtimeByType[$label] = 0.0;
+                    }
+
+                    $this->deadtimeByType[$label] += $hours;
+                    $this->totalDeadtime += $hours;
                 }
-
-                $this->deadtimeByType[$label] += $hours;
-                $this->totalDeadtime += $hours;
             }
         }
     }

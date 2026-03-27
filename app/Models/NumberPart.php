@@ -24,4 +24,14 @@ class NumberPart extends Model
     protected $casts = [
         'active' => 'boolean',
     ];
+
+    public function prices()
+    {
+        return $this->hasMany(NumberPartPrice::class, 'id_np')->orderBy('price_date', 'desc');
+    }
+
+    public function latestPrice()
+    {
+        return $this->hasOne(NumberPartPrice::class, 'id_np')->latestOfMany('price_date');
+    }
 }

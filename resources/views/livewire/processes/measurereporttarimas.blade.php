@@ -31,7 +31,7 @@
                                     {{ optional($tarima->customer)->name }}
                                 </td>
                                 <td class="px-3 py-2 text-center">
-                                    {{ date('d/m/Y', strtotime($tarima->reception_date)) }}
+                                    {{ date('d/m/Y', strtotime($tarima->register_date)) }}
                                 </td>
                                 <td class="px-3 py-2 text-center">
                                     <span class="px-2 py-1 text-lg rounded-lg uppercase font-semibold bg-green-100 text-green-700">

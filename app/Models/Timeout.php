@@ -12,8 +12,17 @@ class Timeout extends Model
     protected $table = 'timeouts';
 
     protected $fillable = [
-        'id_proccess',
+        'id_charge',
         'type',
         'hours',
     ];
+
+    protected $casts = [
+        'hours' => 'decimal:6',
+    ];
+
+    public function charge()
+    {
+        return $this->belongsTo(Charge::class, 'id_charge');
+    }
 }

@@ -1,0 +1,133 @@
+Table number_parts {
+  id int [pk, increment]
+  partnumber text [not null]
+  process text
+  details text
+  microns decimal(10)
+  inches decimal(10)
+  decimeters decimal(10)
+  active boolean
+  created_at datetime
+}
+
+Table np_prices {
+  id int [pk, increment]
+  id_np int [ref: > number_parts.id, not null]
+  price decimal
+  price_date timestamp
+  created_at datetime
+}
+
+Table customers {
+  id int [pk, increment]
+  name text [not null]
+  company_name text [not null]
+  address text [not null]
+  zip_code text
+  telephone text
+  email text
+  rfc text
+  line text
+  active boolean
+  created_at datetime
+}
+
+Table users {
+  id int [pk, increment]
+  name text [not null]
+  email text [not null]
+  title_job text
+  user_type text [not null]
+  sign_image text
+  active boolean
+  created_at datetime
+}
+
+Table start_checklist {
+  id int [pk, increment]
+  id_user int [ref: > users.id, not null]
+  questions json
+  register_date timestamp
+}
+
+Table tarima {
+  id int [pk, increment]
+  id_customer int [ref: > customers.id, not null]
+  who_register int [ref: > users.id, not null]
+  serial_number text
+  register_date timestamp
+  document_url text
+  active boolean
+  created_at timestamp
+}
+
+Table tarima_nps {
+  id int [pk, increment]
+  id_np int [ref: > number_parts.id, not null]
+  id_tarima int [ref: > tarima.id, not null]
+  quantity decimal 
+  oc text
+  of text
+  status_cont boolean 
+}
+
+Table work_lines{
+  id int [pk, increment]
+  name text
+}
+
+Table proccess {
+  id int [pk, increment]
+  id_tarima_np int [ref: > tarima_nps.id, not null]
+  who_made int [ref: > users.id, not null]
+  id_line int [ref: > work_lines.id, not null]
+  pieces_alreadyproccess int
+  operator_name text
+  document_url text
+  start_date timestamp
+  finished_date timestamp
+  status text
+  created_at timestamp
+}
+
+Table charges{
+  id int [pk, increment]
+  id_proccess int [ref: > proccess.id, not null]
+  quantity_pieces int
+  status text
+  who_made int [ref: > users.id, not null]
+  made_date timestamp
+  who_free int [ref: > users.id, not null]
+  free_date timestamp
+  who_confirms int [ref: > users.id, not null]
+  confirm_date timestamp
+  created_at timestamp
+}
+
+
+Table timeouts {
+  id int [pk, increment]
+  id_charge int [ref: > charges.id, not null]
+  type text
+  hours decimal
+  created_at timestamp
+}
+
+Table meditions_report {
+  id int [pk, increment]
+  id_proccess int [ref: > proccess.id, not null]
+  requirement text
+  method text
+  register_date timestamp
+  document_url text
+  created_at timestamp
+}
+
+Table meditionsreport_observations {
+  id int [pk, increment]
+  id_medition_report int [ref: > meditions_report.id, not null]
+  thickness_in_microns decimal
+  visual_appearance text
+  created_at timestamp
+}
+

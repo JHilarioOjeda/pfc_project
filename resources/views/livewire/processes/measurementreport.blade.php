@@ -55,7 +55,7 @@
             <div class="w-full lg:w-1/2 flex flex-col space-y-3 lg:flex-row lg:space-y-0 lg:space-x-4">
                 <div class="w-full lg:w-1/2">
                     <p class="text-secondarycolor">Método:</p>
-                    <select wire:model="method" class="inputcatalogues w-full">
+                    <select wire:model="method" class="inputcatalogues w-full" @if($status == 'finished') disabled @endif>
                         <option value="">Seleccionar...</option>
                         <option value="Colgado">Colgado</option>
                         <option value="Barril">Barril</option>
@@ -67,8 +67,8 @@
                     </span>
                 </div>
                 <div class="w-full lg:w-1/2">
-                    <p class="text-secondarycolor">Requisito:</p>
-                    <textarea wire:model="requirement" class="inputcatalogues w-full"></textarea>
+                    <p class="text-secondarycolor">Micras:</p>
+                    <input wire:model="requirement" type="number" class="inputcatalogues w-full" @if($status == 'finished') disabled @endif>
                     <span class="text-red-500 text-xs italic">
                         @error('requirement')
                             {{$message}}
@@ -80,7 +80,7 @@
         <div class="flex flex-col space-y-2 mt-5">
             <p class="font-semibold text-primarycolor">Observaciones / Condiciones del material</p>
             <div class="w-full lg:w-1/2 flex space-x-3">
-                <div class="sm:w-1/3">
+                    <div class="sm:w-1/3 @if($status == 'finished') hidden @endif">
                         <p class="text-secondarycolor">Apariencia visual</p>
                         <select wire:model="visual_appearance" class="inputcatalogues w-full">
                             <option value="">Seleccionar...</option>
@@ -93,7 +93,7 @@
                             @enderror
                         </span>
                     </div>
-                    <div class="sm:w-1/3">
+                    <div class="sm:w-1/3 @if($status == 'finished') hidden @endif">
                             <p class="text-secondarycolor">Espesor en micras:</p>
                             <div class="flex flex-col sm:flex-row sm:items-end sm:space-x-2">
                                 <div class="flex-1 sm:min-w-[10rem]">
@@ -114,7 +114,7 @@
                             </div>
                         </div>
                     
-            </div>
+                    </div>
             @if(count($measurementsList) > 0)
                     <div class="w-full lg:w-1/2 mt-4">
                         <p class="font-semibold text-primarycolor">Mediciones</p>
@@ -126,7 +126,9 @@
                                             <th class="px-2 py-1 text-left">Número de medición</th>
                                             <th class="px-2 py-1 text-center">Espesor micras</th>
                                             <th class="px-2 py-1 text-center">Apariencia visual</th>
+                                            @if($status != 'finished')
                                             <th class="px-2 py-1 text-left">Acciones</th>
+                                            @endif
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -134,12 +136,14 @@
                                             <tr class="border-b last:border-b-0">
                                                 <td class="px-1 py-2">{{ $loop->iteration }}</td>
                                                 <td class="px-1 py-2 text-center">{{ round($item['thickness_in_microns'], 2) }}</td>
-                                                <td class="px-1 py-2">{{ $item['visual_appearance'] }}</td>
+                                                <td class="px-1 py-2 text-center">{{ $item['visual_appearance'] }}</td>
+                                                @if($status != 'finished')
                                                 <td class="px-1 py-2">
                                                     <x-buttondelete class="!px-2 !py-1 text-xs" wire:click="removeMeasurement({{ $index }})">
                                                         Eliminar
                                                     </x-buttondelete>
                                                 </td>
+                                                @endif
                                             </tr>
                                         @endforeach
                                     </tbody>
@@ -152,7 +156,7 @@
 
         <div class="flex flex-row space-x-3 justify-end mt-12">
             @if($status === 'finished')
-                <x-secondary-hyperlink class="!px-2 !py-1 text-xs" href="{{ route('measurementreports.document', $process_selected->id) }}" target="_blank">
+                <x-secondary-hyperlink class="!px-2 !py-1 text-xs" href="{{ route('measurementreports.document', $process_selected->id) }}" target="">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 mr-1">
                         <path fill-rule="evenodd" d="M10.5 3A1.501 1.501 0 0 0 9 4.5h6A1.5 1.5 0 0 0 13.5 3h-3Zm-2.693.178A3 3 0 0 1 10.5 1.5h3a3 3 0 0 1 2.694 1.678c.497.042.992.092 1.486.15 1.497.173 2.57 1.46 2.57 2.929V19.5a3 3 0 0 1-3 3H6.75a3 3 0 0 1-3-3V6.257c0-1.47 1.073-2.756 2.57-2.93.493-.057.989-.107 1.487-.15Z" clip-rule="evenodd" />
                     </svg>
@@ -168,6 +172,7 @@
                 </x-secondary-button>
 
             
+                @if(count($measurementsList) > 0)
                 <x-button-primary class="w-fit h-fit" onclick="confirmFinishReport()">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5 mr-1">
                         <path fill-rule="evenodd" d="M19.916 4.626a.75.75 0 0 1 .208 1.04l-9 13.5a.75.75 0 0 1-1.154.114l-6-6a.75.75 0 0 1 1.06-1.06l5.353 5.353 8.493-12.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd" />
@@ -175,6 +180,7 @@
 
                     Terminar reporte
                 </x-button-primary>
+                @endif
             @endif
         </div>
     </div>

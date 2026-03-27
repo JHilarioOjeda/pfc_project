@@ -12,6 +12,7 @@
     <nav id="header-menu" class="hidden lg:flex flex-col lg:flex-row w-full lg:w-auto items-center lg:space-x-6">
         <div class="flex flex-col lg:flex-row lg:space-x-3 space-y-3 lg:space-y-0">
             <!-- Opciones del menú principal -->
+            @if(Auth::user()->user_type === '1')
                 <div class="relative">
                     <x-dropdown align="right" class="w-fit">
                         <x-slot name="trigger">
@@ -35,18 +36,23 @@
                         </x-slot>
                     </x-dropdown>
                 </div>
-
+            @endif
+            @if(Auth::user()->user_type === '1' || Auth::user()->user_type === '2')
                 <a href="/storage" class="inline-flex items-center px-3 py-2 border border-transparent leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-white hover:bg-primarycolor focus:outline-none focus:bg-primarycolor focus:text-white active:bg-primarycolor active:text-white transition ease-in-out duration-150">
                     Almacén
                 </a>
+            @endif
+            @if(in_array(Auth::user()->user_type, ['1', '3', '4', '5']))
                 <a href="/processes" class="inline-flex items-center px-3 py-2 border border-transparent leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-white hover:bg-primarycolor focus:outline-none focus:bg-primarycolor focus:text-white active:bg-primarycolor active:text-white transition ease-in-out duration-150">
                     Procesos
                 </a>
-                @if(Auth::user()->user_type === '1')
+            @endif
+            @if(Auth::user()->user_type === '1')
                 <a href="/dashboard" class="inline-flex items-center px-3 py-2 border border-transparent leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-white hover:bg-primarycolor focus:outline-none focus:bg-primarycolor focus:text-white active:bg-primarycolor active:text-white transition ease-in-out duration-150">
                     Estadisticas
                 </a>
-                @endif
+            @endif
+            @if(Auth::user()->user_type === '1')
                 <div class="relative">
                     <x-dropdown align="right" class="w-fit">
                         <x-slot name="trigger">
@@ -67,9 +73,7 @@
                         </x-slot>
                     </x-dropdown>
                 </div>
-                <!-- <a href="/reports" class="inline-flex items-center px-3 py-2 border border-transparent leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-white hover:bg-primarycolor focus:outline-none focus:bg-primarycolor focus:text-white active:bg-primarycolor active:text-white transition ease-in-out duration-150">
-                    Reportes
-                </a> -->
+            @endif
         </div>
 
         <!-- Opciones de perfil -->

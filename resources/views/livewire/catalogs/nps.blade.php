@@ -24,6 +24,7 @@
                         <th class="px-4 py-2 hidden lg:table-cell">Micras</th>
                         <th class="px-4 py-2 hidden lg:table-cell">Pulgadas</th>
                         <th class="px-4 py-2 hidden lg:table-cell">Decímetros</th>
+                        <th class="px-4 py-2 hidden lg:table-cell">Último Precio</th>
                         <th class="px-4 py-2 hidden lg:table-cell">Estatus</th>
                         <th class="px-4 py-2"></th>
                     </tr>
@@ -41,6 +42,7 @@
                                         <p><span class="font-semibold">Micras:</span> {{ $np->microns ?? '-' }}</p>
                                         <p><span class="font-semibold">Pulgadas:</span> {{ $np->inches ?? '-' }}</p>
                                         <p><span class="font-semibold">Decímetros:</span> {{ $np->decimeters ?? '-' }}</p>
+                                        <p><span class="font-semibold">Último Precio:</span> {{ $np->latestPrice ? '$' . number_format($np->latestPrice->price, 2) : '-' }}</p>
                                         <p class="pt-3">
                                             <span class="font-semibold">Estatus:</span>
                                             @if($np->active)
@@ -65,6 +67,14 @@
                                     {{ $np->decimeters ?? '-' }}
                                 </td>
                                 <td class="px-4 py-2 hidden lg:table-cell">
+                                    @if($np->latestPrice)
+                                        <span class="text-green-700 font-semibold">${{ number_format($np->latestPrice->price, 2) }}</span>
+                                        <br><span class="text-xs text-gray-500">{{ $np->latestPrice->price_date->format('d/m/Y') }}</span>
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+                                <td class="px-4 py-2 hidden lg:table-cell">
                                     @if($np->active)
                                         <span class="text-green-600 p-1 rounded-lg bg-green-200 text-xs font-semibold">Activo</span>
                                     @else
@@ -83,7 +93,7 @@
                         @endforeach
                     @else
                         <tr>
-                            <td colspan="7" class="text-center py-4">No se encontraron NPs.</td>
+                            <td colspan="8" class="text-center py-4">No se encontraron NPs.</td>
                         </tr>
                     @endif
                 </tbody>
@@ -181,6 +191,58 @@
                                 </div>
                             </div>
                         </div>
+
+                        @if($npselected != null)
+                        <div class="mt-6 border-t pt-4">
+                            <p class="text-secondarycolor font-semibold text-lg mb-3">Precios</p>
+                            
+                            <div class="flex w-full space-x-4 items-end">
+                                <div class="w-1/3">
+                                    <p class="text-secondarycolor text-sm">Precio:</p>
+                                    <input wire:model="newPrice" type="number" step="0.01" min="0" class="inputcatalogues w-full" placeholder="0.00">
+                                    <span class="text-red-500 text-xs italic">@error('newPrice') {{ $message }} @enderror</span>
+                                </div>
+                                <div class="w-1/3 mt-auto">
+                                    <x-secondary-button wire:click="addPrice" class="w-fit !text-xs">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 mr-1">
+                                            <path fill-rule="evenodd" d="M12 3.75a.75.75 0 0 1 .75.75v6.75h6.75a.75.75 0 0 1 0 1.5h-6.75v6.75a.75.75 0 0 1-1.5 0v-6.75H4.5a.75.75 0 0 1 0-1.5h6.75V4.5a.75.75 0 0 1 .75-.75Z" clip-rule="evenodd" />
+                                        </svg>
+                                        Agregar Precio
+                                    </x-secondary-button>
+                                </div>
+                            </div>
+
+                            @if(count($npPrices) > 0)
+                            <div class="mt-4 max-h-48 overflow-y-auto">
+                                <table class="w-full text-sm">
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th class="px-3 py-2 text-left">Precio</th>
+                                            <th class="px-3 py-2 text-left">Fecha</th>
+                                            <th class="px-3 py-2 text-center">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($npPrices as $price)
+                                        <tr class="border-b border-gray-200">
+                                            <td class="px-3 py-2 font-semibold text-primarycolor">${{ number_format($price['price'], 2) }}</td>
+                                            <td class="px-3 py-2">{{ \Carbon\Carbon::parse($price['price_date'])->format('d/m/Y') }}</td>
+                                            <td class="px-3 py-2 text-center">
+                                                <x-buttondelete onclick="deletePrice({{ $price['id'] }})">
+                                                    Eliminar
+                                                </x-buttondelete>
+
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                            @else
+                            <p class="text-gray-500 text-sm mt-3">No hay precios registrados.</p>
+                            @endif
+                        </div>
+                        @endif
                     </div>
 
                     <x-button-primary wire:click="createUpdateNp" class="w-fit ml-auto mt-6">
@@ -211,6 +273,22 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         @this.call('changeNpStatus', idnp);
+                    }
+                })
+            }
+
+            function deletePrice(priceId){
+                Swal.fire({
+                    title: '¿Seguro que deseas eliminar este precio?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#F27D16',
+                    cancelButtonColor: '#EF4444',
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        @this.call('deletePrice', priceId);
                     }
                 })
             }
