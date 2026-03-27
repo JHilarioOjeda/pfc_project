@@ -68,7 +68,7 @@ class Nps extends Component
     public function loadPrices()
     {
         if ($this->npselected) {
-            $this->npPrices = NumberPartPrice::where('number_part_id', $this->npselected->id)
+            $this->npPrices = NumberPartPrice::where('id_np', $this->npselected->id)
                 ->orderBy('price_date', 'desc')
                 ->get()
                 ->toArray();
@@ -94,7 +94,7 @@ class Nps extends Component
 
         try {
             NumberPartPrice::create([
-                'number_part_id' => $this->npselected->id,
+                'id_np' => $this->npselected->id,
                 'price' => $this->newPrice,
                 'price_date' => $this->newPriceDate ?? date('Y-m-d'),
             ]);

@@ -21,7 +21,8 @@ use App\Models\TarimaNp;
 use App\Models\Customer;
 use App\Models\User;
 use App\Models\Proccess;
-
+use Illuminate\Container\Attributes\Auth as AttributesAuth;
+use Illuminate\Support\Facades\Auth as FacadesAuth;
 use Livewire\Component;
 
 class Processes extends Component
@@ -34,15 +35,20 @@ class Processes extends Component
     public function render(){
 
         $procesos = Proccess::with(['tarimaNp.tarima', 'tarimaNp.numberPart'])
-            ->whereHas('tarimaNp', function($query) {
-                $query->where('oc', 'LIKE', '%' . $this->search . '%')
-                      ->orWhere('of', 'LIKE', '%' . $this->search . '%')
-                      ->orWhereHas('tarima', function($query) {
-                          $query->where('serial_number', 'LIKE', '%' . $this->search . '%');
-                      });
+            ->when(Auth::user()->user_type == '5', function($query) {
+                $query->where('status', 'finished');
             })
-            ->orWhereHas('tarimaNp.numberPart', function($query) {
-                $query->where('partnumber', 'LIKE', '%' . $this->search . '%');
+            ->where(function($query) {
+                $query->whereHas('tarimaNp', function($q) {
+                    $q->where('oc', 'LIKE', '%' . $this->search . '%')
+                      ->orWhere('of', 'LIKE', '%' . $this->search . '%')
+                      ->orWhereHas('tarima', function($q) {
+                          $q->where('serial_number', 'LIKE', '%' . $this->search . '%');
+                      });
+                })
+                ->orWhereHas('tarimaNp.numberPart', function($q) {
+                    $q->where('partnumber', 'LIKE', '%' . $this->search . '%');
+                });
             })
             ->orderBy('id', 'DESC')
             ->paginate(25);

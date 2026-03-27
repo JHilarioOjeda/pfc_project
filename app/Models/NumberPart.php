@@ -27,11 +27,11 @@ class NumberPart extends Model
 
     public function prices()
     {
-        return $this->hasMany(NumberPartPrice::class)->orderBy('price_date', 'desc');
+        return $this->hasMany(NumberPartPrice::class, 'id_np')->orderBy('price_date', 'desc');
     }
 
     public function latestPrice()
     {
-        return $this->hasOne(NumberPartPrice::class)->latestOfMany('price_date');
+        return $this->hasOne(NumberPartPrice::class, 'id_np')->latestOfMany('price_date');
     }
 }
