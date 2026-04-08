@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('number_part_prices', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('number_part_id')->constrained('number_parts')->onDelete('cascade');
+            $table->foreignId('id_np')->constrained('number_parts')->onDelete('cascade');
             $table->decimal('price', 10, 6);
             $table->date('price_date');
             $table->timestamps();

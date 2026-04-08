@@ -39,9 +39,9 @@
                                     <div class="block lg:hidden mt-2 text-gray-500 text-xs">
                                         <p class="text-secondarycolor"><span class="font-semibold">Proceso:</span> {{ $np->process ?? '-' }}</p>
                                         <p><span class="font-semibold">Detalles:</span> {{ $np->details ?? '-' }}</p>
-                                        <p><span class="font-semibold">Micras:</span> {{ $np->microns ?? '-' }}</p>
-                                        <p><span class="font-semibold">Pulgadas:</span> {{ $np->inches ?? '-' }}</p>
-                                        <p><span class="font-semibold">Decímetros:</span> {{ $np->decimeters ?? '-' }}</p>
+                                        <p><span class="font-semibold">Micras:</span> {{ round($np->microns) ?? '-' }}</p>
+                                        <p><span class="font-semibold">Pulgadas:</span> {{ round($np->inches) ?? '-' }}</p>
+                                        <p><span class="font-semibold">Decímetros:</span> {{ round($np->decimeters) ?? '-' }}</p>
                                         <p><span class="font-semibold">Último Precio:</span> {{ $np->latestPrice ? '$' . number_format($np->latestPrice->price, 2) : '-' }}</p>
                                         <p class="pt-3">
                                             <span class="font-semibold">Estatus:</span>
@@ -58,13 +58,13 @@
                                     {{ $np->process ?? '-' }}
                                 </td>
                                 <td class="px-4 py-2 hidden lg:table-cell">
-                                    {{ $np->microns ?? '-' }}
+                                    {{ round($np->microns) ?? '-' }}
                                 </td>
                                 <td class="px-4 py-2 hidden lg:table-cell">
-                                    {{ $np->inches ?? '-' }}
+                                    {{ round($np->inches) ?? '-' }}
                                 </td>
                                 <td class="px-4 py-2 hidden lg:table-cell">
-                                    {{ $np->decimeters ?? '-' }}
+                                    {{ round($np->decimeters) ?? '-' }}
                                 </td>
                                 <td class="px-4 py-2 hidden lg:table-cell">
                                     @if($np->latestPrice)

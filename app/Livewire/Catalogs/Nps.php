@@ -55,9 +55,9 @@ class Nps extends Component
                 $this->partnumber = $this->npselected->partnumber;
                 $this->process = $this->npselected->process;
                 $this->details = $this->npselected->details;
-                $this->microns = $this->npselected->microns;
-                $this->inches = $this->npselected->inches;
-                $this->decimeters = $this->npselected->decimeters;
+                $this->microns = round($this->npselected->microns);
+                $this->inches = round($this->npselected->inches);
+                $this->decimeters = round($this->npselected->decimeters);
                 $this->active = $this->npselected->active;
                 $this->loadPrices();
             }
