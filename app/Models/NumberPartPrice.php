@@ -9,7 +9,7 @@ class NumberPartPrice extends Model
 {
     use HasFactory;
 
-    protected $table = 'np_prices';
+    protected $table = 'number_part_prices';
 
     protected $fillable = [
         'id_np',
