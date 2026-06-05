@@ -71,7 +71,7 @@
                                             <span class="px-1 py-1 rounded-lg text-[10px] uppercase font-semibold bg-gray-200 text-gray-600">sin comenzar</span>
                                         </td>
                                         <td class="px-2 py-2 text-right space-y-3">
-                                            @if(Auth::user()->user_type == '1')
+                                            @if(Auth::user()->user_type == '3' || Auth::user()->user_type == '1')
                                             <x-button-primary onclick="startProcess({{$process->id}})" class="!px-2 !py-1 text-[10px]">
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-3 mr-1">
                                                     <path fill-rule="evenodd" d="M3 2.25a.75.75 0 0 1 .75.75v.54l1.838-.46a9.75 9.75 0 0 1 6.725.738l.108.054A8.25 8.25 0 0 0 18 4.524l3.11-.732a.75.75 0 0 1 .917.81 47.784 47.784 0 0 0 .005 10.337.75.75 0 0 1-.574.812l-3.114.733a9.75 9.75 0 0 1-6.594-.77l-.108-.054a8.25 8.25 0 0 0-5.69-.625l-2.202.55V21a.75.75 0 0 1-1.5 0V3A.75.75 0 0 1 3 2.25Z" clip-rule="evenodd" />
@@ -162,9 +162,12 @@
         }).then((result) => {
             if (result.isConfirmed) {
                 Swal.fire(
-                    '¡Comenzado!',
-                    'El proceso ha comenzado.',
-                    'success'
+                    {
+                        title: '¡Comenzado!',
+                        text: 'El proceso ha comenzado.',
+                        icon: 'success',
+                        showConfirmButton: false,
+                    }
                 )
 
                 window.location.href = '/process/' + idprocess;
