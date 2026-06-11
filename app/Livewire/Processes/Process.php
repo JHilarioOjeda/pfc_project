@@ -42,6 +42,15 @@ class Process extends Component
         if ($this->process_selected) {
             $this->id_line = $this->process_selected->id_line;
             $this->operator_name = $this->process_selected->operator_name;
+
+            if (blank($this->operator_name)) {
+                $defaultOperatorName = $this->resolveDefaultOperatorNameByTarima();
+                if (filled($defaultOperatorName)) {
+                    $this->operator_name = $defaultOperatorName;
+                    $this->process_selected->operator_name = $defaultOperatorName;
+                }
+            }
+
             $this->loadCharges();
         }
 
@@ -51,6 +60,32 @@ class Process extends Component
             $this->process_selected->status = 'inprocess';
             $this->process_selected->save();
         }
+    }
+
+    protected function resolveDefaultOperatorNameByTarima(): ?string
+    {
+        if (!$this->process_selected || !$this->process_selected->tarimaNp) {
+            return null;
+        }
+
+        $tarimaId = $this->process_selected->tarimaNp->id_tarima;
+
+        if (!$tarimaId) {
+            return null;
+        }
+
+        $sourceProcess = Proccess::query()
+            ->whereHas('tarimaNp', function ($query) use ($tarimaId) {
+                $query->where('id_tarima', $tarimaId);
+            })
+            ->whereNotNull('start_date')
+            ->whereNotNull('operator_name')
+            ->whereRaw("TRIM(operator_name) <> ''")
+            ->orderBy('start_date', 'asc')
+            ->orderBy('id', 'asc')
+            ->first();
+
+        return $sourceProcess?->operator_name;
     }
 
     protected function loadCharges(): void
@@ -94,7 +129,7 @@ class Process extends Component
         $this->validate([
             'id_line' => 'required|exists:work_lines,id',
         ], [], [
-            'id_line' => 'LÃ­nea',
+            'id_line' => 'Línea',
         ]);
 
         if (!$this->process_selected) return;
@@ -116,7 +151,7 @@ class Process extends Component
         $piezasTotales     = (float) optional(optional($this->process_selected)->tarimaNp)->quantity;
 
         if ($totalPiezasCargas < $piezasTotales) {
-            LivewireAlert::title('AÃºn quedan piezas restantes por asignar a cargas.')
+            LivewireAlert::title('Aún quedan piezas restantes por asignar a cargas.')
                 ->warning()
                 ->show();
             return;
@@ -169,7 +204,7 @@ class Process extends Component
         $restantes         = $piezasTotales - $totalPiezasCargas;
 
         if ((float) $this->new_charge_quantity > $restantes) {
-            $this->addError('new_charge_quantity', "No pueden asignarse mÃ¡s piezas de las restantes ({$restantes}).");
+            $this->addError('new_charge_quantity', "No pueden asignarse más piezas de las restantes ({$restantes}).");
             return;
         }
 
@@ -238,10 +273,6 @@ class Process extends Component
         $this->deadtimeOpenCharge = ($this->deadtimeOpenCharge === $index) ? null : $index;
     }
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // Tiempos muertos
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
     protected function getDeadtimeOptions(): array
     {
         return [
@@ -255,7 +286,7 @@ class Process extends Component
             '8'  => 'Cambio de soluciones',
             '9'  => 'Evento social',
             '10' => 'Falla de equipo',
-            '11' => 'Falta de energÃ­a elÃ©ctrica',
+            '11' => 'Falta de energía eléctrica',
             '12' => 'Llenado de tinas',
             '13' => 'Limpieza de piezas',
             '14' => 'Cambio de tina y/o ganchos',
@@ -273,7 +304,7 @@ class Process extends Component
             "deadtime.{$chargeIndex}"       => 'required',
             "deadtime_hours.{$chargeIndex}" => 'required|numeric|min:0.01',
         ], [], [
-            "deadtime.{$chargeIndex}"       => 'RazÃ³n de tiempo muerto',
+            "deadtime.{$chargeIndex}"       => 'Razón de tiempo muerto',
             "deadtime_hours.{$chargeIndex}" => 'Tiempo en horas',
         ]);
 

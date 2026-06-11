@@ -11,12 +11,16 @@
             </div>
             <div class="w-full md:w-1/3">
                 <p class="text-secondarycolor">Líder de proceso:</p>
+                @if(Auth::user()->user_type === '3')
+                    <input type="text" class="inputcatalogues w-full bg-gray-100 cursor-not-allowed" value="{{ Auth::user()->name }}" disabled>
+                @else
                 <select class="inputcatalogues w-full" wire:model="leader_id" wire:change="loadData">
                     <option value="">Seleccionar...</option>
                     @foreach ($leaders as $leader)
                         <option value="{{ $leader->id }}">{{ $leader->name }}</option>
                     @endforeach
                 </select>
+                @endif
             </div>
             <div class="w-full md:w-1/3 flex items-end justify-end">
                 @if($date && $leader_id)
