@@ -52,7 +52,7 @@
                     Estadisticas
                 </a>
             @endif
-            @if(Auth::user()->user_type === '1')
+            @if(in_array(Auth::user()->user_type, ['1', '3']))
                 <div class="relative">
                     <x-dropdown align="right" class="w-fit">
                         <x-slot name="trigger">
@@ -64,12 +64,22 @@
                             </button>
                         </x-slot>
                         <x-slot name="content">
-                            <x-dropdown-link href="/reporttarimas">
-                                Reportes de medición por tarima
-                            </x-dropdown-link>
-                            <x-dropdown-link href="/reportprocesses">
-                                Reportes de procesos
-                            </x-dropdown-link>
+                            @if(Auth::user()->user_type === '1')
+                                <x-dropdown-link href="/dashboard">
+                                    Reporte general
+                                </x-dropdown-link>
+                                <x-dropdown-link href="/reporttarimas">
+                                    Reportes de medición por tarima
+                                </x-dropdown-link>
+                                <x-dropdown-link href="/reportprocesses">
+                                    Reportes de procesos
+                                </x-dropdown-link>
+                            @endif
+                            @if(Auth::user()->user_type === '3')
+                                <x-dropdown-link href="/reportprocesses">
+                                    Reportes de procesos
+                                </x-dropdown-link>
+                            @endif
                         </x-slot>
                     </x-dropdown>
                 </div>
