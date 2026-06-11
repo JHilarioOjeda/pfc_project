@@ -1,13 +1,20 @@
 <div class="containerpric">
 
-    <x-loading functionsList="scmodalnps, createUpdateNp" />
+    <x-loading functionsList="scmodalnps, createUpdateNp, scmodalImportNps, analyzeImportFile, processImport" />
 
     <p class="text-secondarycolor text-2xl font-bold">NP</p>
     <div class="bg-white rounded-lg shadow-lg my-3 p-3">
 
         <div class="pb-4 w-full flex">
             <x-search-input class="lg:w-1/3 w-3/4" wireModel="search" placeholder="Buscar..." />
-            <x-button-primary class="my-auto ml-auto whitespace-nowrap" wire:click="scmodalnps(0)">
+            <x-button-primary class="my-auto ml-auto whitespace-nowrap mr-2 !bg-[#217346] hover:!bg-[#1a5c38] focus:!ring-[#217346]" wire:click="scmodalImportNps">
+                <svg class="size-5 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2a1 1 0 0 1 1 1v9.586l2.293-2.293a1 1 0 1 1 1.414 1.414l-4 4a1 1 0 0 1-1.414 0l-4-4a1 1 0 1 1 1.414-1.414L11 12.586V3a1 1 0 0 1 1-1Z"/>
+                    <path d="M4 15a1 1 0 0 1 1 1v3h14v-3a1 1 0 1 1 2 0v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1Z"/>
+                </svg>
+                Carga Masiva
+            </x-button-primary>
+            <x-button-primary class="my-auto whitespace-nowrap" wire:click="scmodalnps(0)">
                 <svg class="size-6 mr-2 font-semibold" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="-10 -200 970 960">
                     <path fill="currentColor" d="M440 328h-240v-80h240v-240h80v240h240v80h-240v240h-80v-240z"></path>
                  </svg>
@@ -58,13 +65,13 @@
                                     {{ $np->process ?? '-' }}
                                 </td>
                                 <td class="px-4 py-2 hidden lg:table-cell">
-                                    {{ round($np->microns) ?? '-' }}
+                                    {{ round($np->microns, 2) ?? '-' }}
                                 </td>
                                 <td class="px-4 py-2 hidden lg:table-cell">
-                                    {{ round($np->inches) ?? '-' }}
+                                    {{ round($np->inches, 2) ?? '-' }}
                                 </td>
                                 <td class="px-4 py-2 hidden lg:table-cell">
-                                    {{ round($np->decimeters) ?? '-' }}
+                                    {{ round($np->decimeters, 2) ?? '-' }}
                                 </td>
                                 <td class="px-4 py-2 hidden lg:table-cell">
                                     @if($np->latestPrice)
@@ -170,7 +177,7 @@
                             </div>
                             <div class="w-full md:w-1/3">
                                 <p class="text-secondarycolor">Pulgadas:</p>
-                                <input wire:model="inches" type="number" step="0.000001" class="inputcatalogues w-full">
+                                <input wire:model="inches" wire:change="calculateDecimeters" type="number" step="0.000001" class="inputcatalogues w-full">
                                 <div>
                                     <span class="text-red-500 text-xs italic">
                                         @error('inches')
@@ -248,6 +255,138 @@
                     <x-button-primary wire:click="createUpdateNp" class="w-fit ml-auto mt-6">
                         @if($npselected == null) Crear @else Actualizar @endif
                     </x-button-primary>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="top-20 @if(!$modalImportNps) hidden @endif left-0 z-50 max-h-full overflow-y-auto">
+        <div class="flex justify-center items-center bg-gray-800 antialiased top-0 opacity-70 left-0 z-30 w-full h-full fixed"></div>
+
+        <div class="flex text-gray-500 text:md justify-center items-center antialiased top-0 left-0 z-40 w-full h-full fixed">
+            <div class="flex flex-col w-11/12 lg:w-2/3 mx-auto rounded-lg overflow-y-auto bg-white px-6 py-3" style="max-height: 90%;">
+                <div class="flex flex-row justify-between rounded-tl-lg rounded-tr-lg">
+                    <p class="text-2xl w-fit my-auto font-semibold text-primarycolor">Importar NPs</p>
+                    <button wire:click="scmodalImportNps" class="closebttn">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="mt-4 space-y-4">
+                    <div class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+                        <p class="text-[11px] text-gray-600">Paso opcional: si necesitas guía de columnas, descarga la plantilla.</p>
+                        <a href="{{ asset('nps_estructura.csv') }}" download="nps_estructura.csv" class="inline-flex items-center mt-1 text-[11px] text-gray-700 hover:text-gray-900 underline underline-offset-2">
+                            <svg class="size-3 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 3a1 1 0 0 1 1 1v9.586l2.293-2.293a1 1 0 1 1 1.414 1.414l-4 4a1 1 0 0 1-1.414 0l-4-4a1 1 0 1 1 1.414-1.414L11 13.586V4a1 1 0 0 1 1-1Z"/>
+                                <path d="M4 15a1 1 0 0 1 1 1v3h14v-3a1 1 0 1 1 2 0v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1Z"/>
+                            </svg>
+                            Descargar archivo de ejemplo
+                        </a>
+                    </div>
+
+                    <div class="rounded-lg border border-gray-200 bg-white p-4">
+                        <p class="text-sm font-semibold text-gray-800">1) Selecciona el archivo</p>
+                        <label class="mt-2 block rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 hover:border-[#217346] hover:bg-emerald-50 transition-colors cursor-pointer">
+                            <div class="flex items-center gap-3">
+                                <div class="rounded-md bg-[#217346] p-2 text-white">
+                                    <svg class="size-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 16a1 1 0 0 1-1-1V6.414L8.707 8.707a1 1 0 0 1-1.414-1.414l4-4a1 1 0 0 1 1.414 0l4 4a1 1 0 1 1-1.414 1.414L13 6.414V15a1 1 0 0 1-1 1Z"/>
+                                        <path d="M4 14a1 1 0 0 1 1 1v3h14v-3a1 1 0 1 1 2 0v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1Z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-semibold text-gray-800">Haz clic para seleccionar el archivo</p>
+                                    <p class="text-xs text-gray-500">Formatos permitidos: CSV, TXT, XLSX, XLS</p>
+                                </div>
+                            </div>
+                            <input type="file" wire:model="importFile" accept=".csv,.txt,.xlsx,.xls" class="hidden" />
+                        </label>
+
+                        @if($importFile)
+                        <p class="text-xs text-emerald-700 mt-2">
+                            Archivo seleccionado: <span class="font-semibold">{{ $importFile->getClientOriginalName() }}</span>
+                        </p>
+                        @endif
+
+                        <span class="text-red-500 text-xs italic">@error('importFile') {{ $message }} @enderror</span>
+
+                        <div wire:loading wire:target="importFile" class="text-amber-700 text-sm mt-2 font-semibold">
+                            Subiendo archivo...
+                        </div>
+
+                        <p class="text-sm font-semibold text-gray-800 mt-4">2) Analiza y luego importa</p>
+                        <div class="mt-2 flex flex-wrap gap-2">
+                            <x-secondary-button wire:click="analyzeImportFile" wire:loading.attr="disabled" wire:target="analyzeImportFile,processImport">
+                                Analizar Archivo
+                            </x-secondary-button>
+                            <x-button-primary wire:click="processImport" wire:loading.attr="disabled" wire:target="analyzeImportFile,processImport" :disabled="!$importIsAnalyzed">
+                                Importar Registros
+                            </x-button-primary>
+                        </div>
+
+                        @if(!$importIsAnalyzed)
+                        <p class="text-xs text-gray-500 mt-2">Primero analiza el archivo para habilitar la importación.</p>
+                        @endif
+
+                        <div wire:loading wire:target="analyzeImportFile" class="text-blue-700 text-sm mt-3 font-semibold">
+                            Analizando archivo...
+                        </div>
+
+                        <div wire:loading wire:target="processImport" class="text-green-700 text-sm mt-3 font-semibold">
+                            Guardando registros, por favor espera...
+                        </div>
+                    </div>
+
+                    @if($importNewCount > 0 || $importUpdateCount > 0)
+                    <div class="mt-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div class="rounded-lg bg-green-50 border border-green-200 p-3">
+                            <p class="text-sm text-green-700">Nuevos registros</p>
+                            <p class="text-2xl font-bold text-green-800">{{ $importNewCount }}</p>
+                        </div>
+                        <div class="rounded-lg bg-amber-50 border border-amber-200 p-3">
+                            <p class="text-sm text-amber-700">Registros a actualizar</p>
+                            <p class="text-2xl font-bold text-amber-800">{{ $importUpdateCount }}</p>
+                        </div>
+                    </div>
+                    @endif
+
+                    @if(count($importPreview) > 0)
+                    <div class="mt-4 max-h-72 overflow-y-auto border border-gray-200 rounded-lg">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-100 sticky top-0">
+                                <tr>
+                                    <th class="px-3 py-2 text-left">Numero de Parte</th>
+                                    <th class="px-3 py-2 text-left">Acabado</th>
+                                    <th class="px-3 py-2 text-left">IN²</th>
+                                    <th class="px-3 py-2 text-left">Micraje</th>
+                                    <th class="px-3 py-2 text-left">Precio</th>
+                                    <th class="px-3 py-2 text-left">Accion</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($importPreview as $row)
+                                <tr class="border-b border-gray-200">
+                                    <td class="px-3 py-2 font-semibold">{{ $row['partnumber'] }}</td>
+                                    <td class="px-3 py-2">{{ $row['process'] ?: '-' }}</td>
+                                    <td class="px-3 py-2">{{ $row['inches'] ?? '-' }}</td>
+                                    <td class="px-3 py-2">{{ $row['microns'] ?? '-' }}</td>
+                                    <td class="px-3 py-2">{{ $row['price'] ?? '-' }}</td>
+                                    <td class="px-3 py-2">
+                                        @if(!empty($row['id']))
+                                            <span class="text-amber-700 font-semibold">Actualizar</span>
+                                        @else
+                                            <span class="text-green-700 font-semibold">Crear</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">Mostrando los primeros 10 registros del archivo.</p>
+                    @endif
                 </div>
             </div>
         </div>

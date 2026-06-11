@@ -46,7 +46,7 @@
                     </div>
                     <div class="flex flex-col">
                         <span class="text-secondarycolor text-sm">Cantidad</span>
-                        <span class="text-base sm:text-lg font-medium">{{ $process_selected->tarimaNp->quantity ?? 'N/A' }}</span>
+                        <span class="text-base sm:text-lg font-medium">{{ round(optional($process_selected->tarimaNp)->quantity, 4) ?? 'N/A' }}</span>
                     </div>
                 </div>
             </div>
@@ -71,6 +71,17 @@
                     <input wire:model="requirement" type="number" class="inputcatalogues w-full" @if($status == 'finished') disabled @endif>
                     <span class="text-red-500 text-xs italic">
                         @error('requirement')
+                            {{$message}}
+                        @enderror
+                    </span>
+                </div>
+            </div>
+            <div class="w-full lg:w-1/2 flex flex-col space-y-3 lg:flex-row lg:space-y-0 lg:space-x-4">
+                <div class="w-full lg:w-1/2">
+                    <p class="text-secondarycolor">Notas:</p>
+                    <textarea wire:model="notes" class="inputcatalogues w-full" rows="3" @if($status == 'finished') disabled @endif></textarea>
+                    <span class="text-red-500 text-xs italic">
+                        @error('notes')
                             {{$message}}
                         @enderror
                     </span>

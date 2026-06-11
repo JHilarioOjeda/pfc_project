@@ -15,7 +15,7 @@ class Measurementreport extends Component
 {
     public $idprocess, $process_selected;
 
-    public $method, $requirement, $status;
+    public $method, $requirement, $status, $notes = '*Se recomienda mantener el material en un lugar seco libre de humedad o líquidos (agua, soluciones, aceites, etc.) o solventes que emanen vapores.';
     public $visual_appearance, $thickness_in_microns;
 
     // Lista de mediciones registradas (cada elemento: id_observation, thickness_in_microns, visual_appearance)
@@ -37,6 +37,7 @@ class Measurementreport extends Component
                 $this->method = $report->method;
                 $this->requirement = $report->requirement;
                 $this->status = $report->status;
+                $this->notes = $report->notes;
 
                 $observations = MeditionsreportObservation::where('id_medition_report', $report->id)->get();
                 foreach ($observations as $observation) {
@@ -60,9 +61,11 @@ class Measurementreport extends Component
         $this->validate([
             'method' => 'required|string|max:255',
             'requirement' => 'nullable|string',
+            'notes' => 'nullable|string',
         ], [], [
             'method' => 'Método',
             'requirement' => 'Requisito',
+            'notes' => 'Notas',
         ]);
     }
 
@@ -91,6 +94,7 @@ class Measurementreport extends Component
             [
                 'method' => $this->method,
                 'requirement' => $this->requirement,
+                'notes' => $this->notes,
                 'register_date' => now(),
             ]
         );
@@ -100,6 +104,7 @@ class Measurementreport extends Component
         } else {
             $report->method = $this->method;
             $report->requirement = $this->requirement;
+            $report->notes = $this->notes;
 
             if (!$report->register_date) {
                 $report->register_date = now();

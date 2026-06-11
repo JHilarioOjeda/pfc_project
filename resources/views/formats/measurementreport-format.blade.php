@@ -62,13 +62,13 @@
                         <td class="border border-black px-2 py-1 font-semibold">Código / Nombre de la pieza</td>
                         <td class="border border-black px-2 py-1">{{ optional($numberPart)->partnumber }}</td>
                         <td class="border border-black px-2 py-1 font-semibold">Requisito</td>
-                        <td class="border border-black px-2 py-1">{{ $report->requirement }}</td>
+                        <td class="border border-black px-2 py-1">{{ round(optional($report)->requirement, 4) }}</td>
                     </tr>
                     <tr>
                         <td class="border border-black px-2 py-1 font-semibold">Unidades de medición</td>
                         <td class="border border-black px-2 py-1">Micras</td>
                         <td class="border border-black px-2 py-1 font-semibold">Cantidad</td>
-                        <td class="border border-black px-2 py-1">{{ optional($tarimaNp)->quantity }}</td>
+                        <td class="border border-black px-2 py-1">{{ round(optional($tarimaNp)->quantity, 4) }}</td>
                     </tr>
                     <tr>
                         <td class="border border-black px-2 py-1 font-semibold"># Orden</td>
@@ -116,7 +116,11 @@
             <!-- NOTA Y CADUCIDAD -->
             <div class="w-full mt-3 text-[10px]">
                 <p class="font-semibold">NOTA</p>
-                <p>*Se recomienda mantener el material en un lugar seco libre de humedad o líquidos (agua, soluciones, aceites, etc.) o solventes que emanen vapores.</p>
+                @if($report->notes)
+                    <p>{{ $report->notes }}</p>
+                @else
+                    <p>*Se recomienda mantener el material en un lugar seco libre de humedad o líquidos (agua, soluciones, aceites, etc.) o solventes que emanen vapores.</p>
+                @endif
                 <p class="mt-1">Caducidad: 30 días a partir de la fecha de su tratamiento.</p>
             </div>
 
@@ -130,7 +134,7 @@
     </div>
 
     <!-- BOTONES FLOTANTES IMPRESIÓN / PDF -->
-    <x-secondary-button type="button" class="fixed bottom-4 right-32 z-50 px-4 py-3 text-sm flex items-center shadow-lg no-print" onclick="saveMeasurementReportPdf()">
+    <x-secondary-button type="button" class="fixed bottom-4 right-40 z-50 px-4 py-3 text-sm flex items-center shadow-lg no-print" onclick="saveMeasurementReportPdf()">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5 mr-2">
             <path d="M6.75 3A2.25 2.25 0 0 0 4.5 5.25v3A2.25 2.25 0 0 0 6.75 10.5h10.5A2.25 2.25 0 0 0 19.5 8.25v-3A2.25 2.25 0 0 0 17.25 3h-10.5Z" />
             <path fill-rule="evenodd" d="M6.75 12a.75.75 0 0 0 0 1.5h7.5a.75.75 0 0 0 0-1.5h-7.5Z" clip-rule="evenodd" />
