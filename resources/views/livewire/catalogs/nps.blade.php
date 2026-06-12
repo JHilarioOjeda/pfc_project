@@ -21,7 +21,6 @@
                 Crear NP
             </x-button-primary>
         </div>
-
         <div class="relative overflow-x-auto rounded-lg">
             <table class="table table-hover w-full text-left">
                 <thead>
@@ -105,6 +104,9 @@
                     @endif
                 </tbody>
            </table>
+           <section class="px-4 py-2">
+                {{ $nps->links() }}
+            </section>
         </div>
     </div>
 
