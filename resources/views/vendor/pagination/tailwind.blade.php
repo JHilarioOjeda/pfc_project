@@ -6,7 +6,7 @@
             Mostrando
             @if ($paginator->firstItem())
                 <span class="font-semibold text-secondarycolor">{{ $paginator->firstItem() }}</span>
-                –
+                -
                 <span class="font-semibold text-secondarycolor">{{ $paginator->lastItem() }}</span>
             @else
                 {{ $paginator->count() }}
@@ -62,19 +62,16 @@
                    class="inline-flex items-center px-2.5 py-1.5 rounded-md text-xs font-medium text-secondarycolor bg-white border border-gray-300 hover:bg-gray-100 focus:outline-none transition ease-in-out duration-150">
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                            </svg>
-                        </a>
-                    @else
-                        <span aria-disabled="true" aria-label="{{ __('pagination.next') }}">
-                            <span class="relative inline-flex items-center px-2 py-2 -ml-px text-sm font-medium text-gray-500 bg-white border border-gray-300 cursor-default rounded-r-md leading-5 dark:bg-gray-800 dark:border-gray-600" aria-hidden="true">
-                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                                </svg>
-                            </span>
-                        </span>
-                    @endif
+                    </svg>
+                </a>
+            @else
+                <span aria-disabled="true" aria-label="{{ __('pagination.next') }}"
+                      class="inline-flex items-center px-2.5 py-1.5 rounded-md text-xs font-medium text-gray-300 bg-gray-100 border border-gray-200 cursor-default select-none">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                    </svg>
                 </span>
-            </div>
+            @endif
         </div>
     </nav>
 @endif
