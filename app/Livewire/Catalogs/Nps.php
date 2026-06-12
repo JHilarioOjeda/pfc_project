@@ -54,7 +54,7 @@ class Nps extends Component
             ->orWhere('process', 'LIKE', '%' . $this->search . '%')
             ->orWhere('details', 'LIKE', '%' . $this->search . '%')
             ->orderBy('partnumber', 'ASC')
-            ->get();
+            ->paginate(25);
 
         return view('livewire.catalogs.nps')->with('nps', $nps);
     }
