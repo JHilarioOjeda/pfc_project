@@ -56,6 +56,9 @@
                                                 @case(5)
                                                     Calidad
                                                     @break
+                                                @case(6)
+                                                    Coordinador de producción
+                                                    @break
                                                 @default
                                                     Desconocido
                                             @endswitch
@@ -94,6 +97,9 @@
                                             @break
                                         @case(5)
                                             Calidad
+                                            @break
+                                        @case(6)
+                                            Coordinador de producción
                                             @break
                                         @default
                                             Desconocido
@@ -212,12 +218,83 @@
                     <p class="italic text-sm font-semibold text-secondarycolor mt-5">Información de usuario</p>
                     <div class="border-2 border-dashed border-gray-300 rounded-lg p-2">
                         <div class="w-full md:flex my-3 md:space-x-4">
-                            <div class="w-full md:w-1/2">
+                            <div class="w-full md:w-1/2"
+                                x-data="{
+                                    userType: $wire.entangle('user_type'),
+                                    get desc() {
+                                        const v = this.userType;
+                                        return (v && String(v) !== 'null') ? (this.info[String(v)] ?? null) : null;
+                                    },
+                                    info: {
+                                        '1': {
+                                            label: 'Administrador',
+                                            color: 'text-purple-700 bg-purple-50 border-purple-200',
+                                            dot: 'bg-purple-500',
+                                            items: [
+                                                'Gestión completa de usuarios, clientes y números de parte',
+                                                'Control total del almacén y movimiento de tarimas',
+                                                'Supervisión de todos los procesos de producción',
+                                                'Acceso a estadísticas y dashboard del sistema',
+                                                'Reportes generales, de medición por tarima y de procesos'
+                                            ]
+                                        },
+                                        '2': {
+                                            label: 'Almacenista',
+                                            color: 'text-blue-700 bg-blue-50 border-blue-200',
+                                            dot: 'bg-blue-500',
+                                            items: [
+                                                'Registrar, consultar y actualizar tarimas en almacén',
+                                                'Ver el estado e historial de movimientos de inventario'
+                                            ]
+                                        },
+                                        '6': {
+                                            label: 'Coordinador de producción',
+                                            color: 'text-orange-700 bg-orange-50 border-orange-200',
+                                            dot: 'bg-orange-500',
+                                            items: [
+                                                'Supervisar los procesos de todos los líderes de línea',
+                                                'Consultar reportes de procesos de cualquier líder',
+                                                'Monitorear el estado general de producción en tiempo real'
+                                            ]
+                                        },
+                                        '3': {
+                                            label: 'Líder de producción',
+                                            color: 'text-green-700 bg-green-50 border-green-200',
+                                            dot: 'bg-green-500',
+                                            items: [
+                                                'Gestionar los procesos de su propia línea de producción',
+                                                'Registrar cargas, piezas procesadas y tiempos muertos',
+                                                'Llenar el checklist de arranque de turno',
+                                                'Consultar reportes de procesos de su línea'
+                                            ]
+                                        },
+                                        '4': {
+                                            label: 'Personal de Secado',
+                                            color: 'text-yellow-700 bg-yellow-50 border-yellow-200',
+                                            dot: 'bg-yellow-500',
+                                            items: [
+                                                'Registrar piezas procesadas en la etapa de secado',
+                                                'Acceso a los procesos asignados al área de secado'
+                                            ]
+                                        },
+                                        '5': {
+                                            label: 'Calidad',
+                                            color: 'text-red-700 bg-red-50 border-red-200',
+                                            dot: 'bg-red-500',
+                                            items: [
+                                                'Revisar y validar procesos desde la perspectiva de calidad',
+                                                'Generar y consultar reportes de medición por tarima'
+                                            ]
+                                        }
+                                    }
+                                }"
+                            >
                                 <p class="text-secondarycolor">Tipo de usuario:</p>
-                                <select wire:model ="user_type" class="inputcatalogues w-full" id="usertype">
+                                <select wire:model="user_type" class="inputcatalogues w-full" id="usertype">
                                     <option value="null">Seleccionar...</option>
                                     <option value="1">Administrador</option>
                                     <option value="2">Almacenista</option>
+                                    <option value="6">Coordinador de producción</option>
                                     <option value="3">Líder de producción</option>
                                     <option value="4">Personal de Secado</option>
                                     <option value="5">Calidad</option>
@@ -228,6 +305,33 @@
                                             {{$message}}
                                         @enderror
                                     </span>
+                                </div>
+
+                                <div
+                                    x-show="desc !== null"
+                                    x-transition:enter="transition ease-out duration-150"
+                                    x-transition:enter-start="opacity-0 -translate-y-1"
+                                    x-transition:enter-end="opacity-100 translate-y-0"
+                                    x-transition:leave="transition ease-in duration-100"
+                                    x-transition:leave-start="opacity-100"
+                                    x-transition:leave-end="opacity-0"
+                                    class="mt-2 border rounded-lg p-2.5"
+                                    :class="desc?.color ?? ''"
+                                >
+                                    <div class="flex items-center gap-1.5 mb-1.5">
+                                        <span class="inline-block w-2 h-2 rounded-full flex-shrink-0" :class="desc?.dot ?? ''"></span>
+                                        <p class="text-xs font-bold" x-text="desc?.label ?? ''"></p>
+                                    </div>
+                                    <ul class="space-y-1">
+                                        <template x-for="(item, idx) in desc?.items ?? []" :key="idx">
+                                            <li class="flex items-start gap-1.5 text-xs opacity-80">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-3.5 flex-shrink-0 mt-0.5">
+                                                    <path fill-rule="evenodd" d="M19.916 4.626a.75.75 0 0 1 .208 1.04l-9 13.5a.75.75 0 0 1-1.154.114l-6-6a.75.75 0 0 1 1.06-1.06l5.353 5.353 8.493-12.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd" />
+                                                </svg>
+                                                <span x-text="item"></span>
+                                            </li>
+                                        </template>
+                                    </ul>
                                 </div>
                             </div>
 

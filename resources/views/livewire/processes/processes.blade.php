@@ -71,7 +71,7 @@
                                             <span class="px-1 py-1 rounded-lg text-[10px] uppercase font-semibold bg-gray-200 text-gray-600">sin comenzar</span>
                                         </td>
                                         <td class="px-2 py-2 text-right space-y-3">
-                                            @if(Auth::user()->user_type == '3' || Auth::user()->user_type == '1')
+                                            @if(in_array(Auth::user()->user_type, ['1', '3', '6']))
                                             <x-button-primary onclick="startProcess({{$process->id}})" class="!px-2 !py-1 text-[10px]">
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-3 mr-1">
                                                     <path fill-rule="evenodd" d="M3 2.25a.75.75 0 0 1 .75.75v.54l1.838-.46a9.75 9.75 0 0 1 6.725.738l.108.054A8.25 8.25 0 0 0 18 4.524l3.11-.732a.75.75 0 0 1 .917.81 47.784 47.784 0 0 0 .005 10.337.75.75 0 0 1-.574.812l-3.114.733a9.75 9.75 0 0 1-6.594-.77l-.108-.054a8.25 8.25 0 0 0-5.69-.625l-2.202.55V21a.75.75 0 0 1-1.5 0V3A.75.75 0 0 1 3 2.25Z" clip-rule="evenodd" />
@@ -111,7 +111,7 @@
                                                 Detalles
                                             </x-secondary-hyperlink>
 
-                                            @if(Auth::user()->user_type == '5' || Auth::user()->user_type == '1')
+                                            @if(in_array(Auth::user()->user_type, ['1', '5', '6']))
                                             <x-secondary-hyperlink href="{{ route('measurementreports', $process->id) }}" target="" class="!px-2 !py-1 text-[9.9px] lg:text-[10px]">
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 mr-1">
                                                     <path fill-rule="evenodd" d="M5.625 1.5H9a3.75 3.75 0 0 1 3.75 3.75v1.875c0 1.036.84 1.875 1.875 1.875H16.5a3.75 3.75 0 0 1 3.75 3.75v7.875c0 1.035-.84 1.875-1.875 1.875H5.625a1.875 1.875 0 0 1-1.875-1.875V3.375c0-1.036.84-1.875 1.875-1.875ZM9.75 17.25a.75.75 0 0 0-1.5 0V18a.75.75 0 0 0 1.5 0v-.75Zm2.25-3a.75.75 0 0 1 .75.75v3a.75.75 0 0 1-1.5 0v-3a.75.75 0 0 1 .75-.75Zm3.75-1.5a.75.75 0 0 0-1.5 0V18a.75.75 0 0 0 1.5 0v-5.25Z" clip-rule="evenodd" />
