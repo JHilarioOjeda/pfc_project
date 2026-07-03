@@ -65,7 +65,7 @@
             <div class="w-full lg:w-1/2 flex flex-col space-y-3 lg:flex-row lg:space-y-0 lg:space-x-4">
                 <div class="w-full lg:w-1/2">
                     <p class="text-secondarycolor">Línea:</p>
-                    <select wire:model="id_line" id="id_line" class="inputcatalogues w-full" @if((!in_array(Auth::user()->user_type, ['1', '3'])) || $process_selected->status === 'finished') disabled @endif>
+                    <select wire:model="id_line" id="id_line" class="inputcatalogues w-full" @if((!in_array(Auth::user()->user_type, ['1', '3', '6'])) || $process_selected->status === 'finished') disabled @endif>
                         <option value="">Seleccionar...</option>
                         @foreach ($lines as $line)
                             <option @if($id_line == $line->id) selected @endif value="{{ $line->id }}">{{ $line->name }}</option>
@@ -75,7 +75,7 @@
                 </div>
                 <div class="w-full lg:w-1/2">
                     <p class="text-secondarycolor">Nombre(s) de operador(es):</p>
-                    <textarea wire:model="operator_name" class="inputcatalogues w-full" @if((!in_array(Auth::user()->user_type, ['1', '3'])) || $process_selected->status === 'finished') disabled @endif></textarea>
+                    <textarea wire:model="operator_name" class="inputcatalogues w-full" @if((!in_array(Auth::user()->user_type, ['1', '3', '6'])) || $process_selected->status === 'finished') disabled @endif></textarea>
                 </div>
             </div>
 
@@ -102,7 +102,7 @@
 
             {{-- Agregar nueva carga --}}
             @if($process_selected->status !== 'finished' && $piezasRestantes > 0)
-                @if(in_array(Auth::user()->user_type, ['1', '3']))
+                @if(in_array(Auth::user()->user_type, ['1', '3', '6']))
                 <div class="flex flex-col sm:flex-row sm:items-end sm:space-x-3 space-y-2 sm:space-y-0 w-full lg:w-1/2">
                     <div class="flex-1">
                         <p class="text-secondarycolor text-sm">Piezas por carga:</p>
@@ -137,7 +137,7 @@
 
                         <div class="ml-auto flex flex-wrap gap-2">
                             {{-- Botón Liberar --}}
-                            @if($charge['status'] === 'created' && $process_selected->status !== 'finished' && in_array(Auth::user()->user_type, ['1', '3']))
+                            @if($charge['status'] === 'created' && $process_selected->status !== 'finished' && in_array(Auth::user()->user_type, ['1', '3', '6']))
                                 <button onclick="confirmLiberateCharge({{ $ci }})" class="px-3 py-1 text-xs rounded-md bg-blue-500 text-white hover:bg-blue-600 transition uppercase font-semibold">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 inline mr-1">
                                         <path fill-rule="evenodd" d="M3 2.25a.75.75 0 0 1 .75.75v.54l1.838-.46a9.75 9.75 0 0 1 6.725.738l.108.054A8.25 8.25 0 0 0 18 4.524l3.11-.732a.75.75 0 0 1 .917.81 47.784 47.784 0 0 0 .005 10.337.75.75 0 0 1-.574.812l-3.114.733a9.75 9.75 0 0 1-6.594-.77l-.108-.054a8.25 8.25 0 0 0-5.69-.625l-2.202.55V21a.75.75 0 0 1-1.5 0V3A.75.75 0 0 1 3 2.25Z" clip-rule="evenodd" />
@@ -148,7 +148,7 @@
                             @endif
 
                             {{-- Botón Confirmar --}}
-                            @if($charge['status'] === 'liberated' && $process_selected->status !== 'finished' && in_array(Auth::user()->user_type, ['1', '4']))
+                            @if($charge['status'] === 'liberated' && $process_selected->status !== 'finished' && in_array(Auth::user()->user_type, ['1', '4', '6']))
                                 <button onclick="confirmConfirmCharge({{ $ci }})"
                                         class="px-3 py-1 text-xs rounded-md bg-green-600 text-white hover:bg-green-400 transition uppercase font-semibold">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 inline mr-1">
@@ -235,7 +235,7 @@
                                                 <tr class="border-b last:border-b-0">
                                                     <td class="px-1 py-2">{{ $timeout['type'] }}</td>
                                                     <td class="px-1 py-2 text-center">{{ round($timeout['hours'], 2) }}</td>
-                                                    @if($process_selected->status !== 'finished' && $charge['status'] !== 'confirmed' && in_array(Auth::user()->user_type, ['1', '4']))
+                                                    @if($process_selected->status !== 'finished' && $charge['status'] !== 'confirmed' && in_array(Auth::user()->user_type, ['1', '4', '6']))
                                                         <td class="px-1 py-2">
                                                             <x-buttondelete class="!px-2 !py-1 text-xs" wire:click="removeDeadtime({{ $ci }}, {{ $ti }})">
                                                                 Eliminar
@@ -261,7 +261,7 @@
         {{-- Acciones --}}
         <div class="flex flex-row space-x-3 justify-end">
             @if($process_selected->status !== 'finished')
-                @if((in_array(Auth::user()->user_type, ['1', '3'])))
+                @if((in_array(Auth::user()->user_type, ['1', '3', '6'])))
                 <x-secondary-button class="w-fit h-fit" onclick="confirmUpdateProcess()">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 mr-1">
                         <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32l8.4-8.4Z" />
@@ -271,7 +271,7 @@
                 </x-secondary-button>
                 @endif
 
-                @if($piezasRestantes == 0 && collect($chargesList)->isNotEmpty() && collect($chargesList)->every(fn($c) => $c['status'] === 'confirmed') && (in_array(Auth::user()->user_type, ['1', '4'])))
+                @if($piezasRestantes == 0 && collect($chargesList)->isNotEmpty() && collect($chargesList)->every(fn($c) => $c['status'] === 'confirmed') && (in_array(Auth::user()->user_type, ['1', '4', '6'])))
                     <x-button-primary class="w-fit h-fit" onclick="confirmFinishProcess()">
                         <!-- <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 mr-1">
                             <path fill-rule="evenodd" d="M19.916 4.626a.75.75 0 0 1 .208 1.04l-9 13.5a.75.75 0 0 1-1.154.114l-6-6a.75.75 0 0 1 1.06-1.06l5.353 5.353 8.493-12.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd" />

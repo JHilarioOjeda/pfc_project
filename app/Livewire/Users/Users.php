@@ -137,7 +137,7 @@ class Users extends Component
                 ->success()
                 ->show();
  
-        }catch(\Exception $exception) {
+        }catch(Throwable $exception) {
             $this->alert('error', 'No se puede desactivar.', [
              'position' => 'center',
              'timer' => 1500,
@@ -159,7 +159,7 @@ class Users extends Component
                 ->success()
                 ->show();
  
-        }catch(\Exception $exception) {
+        }catch(Throwable $exception) {
             $this->alert('error', 'No se puede activar.', [
              'position' => 'center',
              'timer' => 1500,

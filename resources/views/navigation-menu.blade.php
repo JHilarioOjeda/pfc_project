@@ -42,7 +42,7 @@
                     Almacén
                 </a>
             @endif
-            @if(in_array(Auth::user()->user_type, ['1', '3', '4', '5']))
+            @if(in_array(Auth::user()->user_type, ['1', '3', '4', '5', '6']))
                 <a href="/processes" class="inline-flex items-center px-3 py-2 border border-transparent leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-white hover:bg-primarycolor focus:outline-none focus:bg-primarycolor focus:text-white active:bg-primarycolor active:text-white transition ease-in-out duration-150">
                     Procesos
                 </a>
@@ -52,7 +52,7 @@
                     Estadisticas
                 </a>
             @endif
-            @if(in_array(Auth::user()->user_type, ['1', '3']))
+            @if(in_array(Auth::user()->user_type, ['1', '3', '6']))
                 <div class="relative">
                     <x-dropdown align="right" class="w-fit">
                         <x-slot name="trigger">
@@ -75,7 +75,7 @@
                                     Reportes de procesos
                                 </x-dropdown-link>
                             @endif
-                            @if(Auth::user()->user_type === '3')
+                            @if(in_array(Auth::user()->user_type, ['3', '6']))
                                 <x-dropdown-link href="/reportprocesses">
                                     Reportes de procesos
                                 </x-dropdown-link>
