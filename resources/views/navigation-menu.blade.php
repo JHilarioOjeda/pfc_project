@@ -1,7 +1,19 @@
 <header class="no-print sticky top-0 z-20 bg-white w-full text-gray-600 body-font shadow-sm flex flex-wrap p-5 flex-row items-center justify-between">
-    <div class="flex title-font font-medium items-center text-gray-900 mb-4 lg:mb-0 border-r border-borderseparate pr-5" href="/">
-        <img class="h-12" src="/imgs/logos/principallogo.jpg" alt="logo">
+    <div class="flex title-font font-medium items-center text-gray-900 mb-4 lg:mb-0 pr-5" href="/">
+        <img class="h-12 border-r border-borderseparate pr-2" src="/imgs/logos/principallogo.jpg" alt="logo">
+
+        <div class="hidden sm:flex items-center bg-white px-2 py-1 space-x-3">
+            <div class="h-8 w-8 rounded-full bg-primarycolor text-white flex items-center justify-center font-semibold px-2 py-1">
+                {{ strtoupper(mb_substr(Auth::user()->name, 0, 1)) }}
+            </div>
+            <div class="text-xs text-gray-600">
+                <p class="font-semibold">{{ Auth::user()->name }}</p>
+                <p>{{ Auth::user()->email }}</p>
+            </div>
+        </div>
     </div>
+
+    
     <!-- Botón del menú móvil -->
     <button id="header-nav" class="lg:hidden">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -47,12 +59,12 @@
                     Procesos
                 </a>
             @endif
-            @if(Auth::user()->user_type === '1')
+            {{-- {@if(Auth::user()->user_type === '1')
                 <a href="/dashboard" class="inline-flex items-center px-3 py-2 border border-transparent leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-white hover:bg-primarycolor focus:outline-none focus:bg-primarycolor focus:text-white active:bg-primarycolor active:text-white transition ease-in-out duration-150">
                     Estadisticas
                 </a>
-            @endif
-            @if(in_array(Auth::user()->user_type, ['1', '3', '6']))
+            @endif} --}}
+            @if(in_array(Auth::user()->user_type, ['1', '3', '5', '6']))
                 <div class="relative">
                     <x-dropdown align="right" class="w-fit">
                         <x-slot name="trigger">
@@ -73,6 +85,11 @@
                                 </x-dropdown-link>
                                 <x-dropdown-link href="/reportprocesses">
                                     Reportes de procesos
+                                </x-dropdown-link>
+                            @endif
+                            @if(Auth::user()->user_type === '5')
+                                <x-dropdown-link href="/reporttarimas">
+                                    Reportes de medición por tarima
                                 </x-dropdown-link>
                             @endif
                             @if(in_array(Auth::user()->user_type, ['3', '6']))

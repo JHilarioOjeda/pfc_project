@@ -22,7 +22,7 @@
                 </div>
 
                 <div class="text-[10px] border border-black px-2 py-1 leading-tight w-2/12">
-                    <p><span class="font-semibold">Código:</span> FO-AL-AL-05</p>
+                    <p><span class="font-semibold">Código:</span> FO-AL-AL-04</p>
                     <p><span class="font-semibold">Revisión:</span> 01</p>
                     <p><span class="font-semibold">Fecha:</span> 26/Nov/2025</p>
                 </div>
