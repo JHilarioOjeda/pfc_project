@@ -51,7 +51,7 @@
                     </a>
                 @endif -->
 
-                <p class="font-semibold text-left text-sm">Versión 1.0.0</p>
+                <p class="font-semibold text-left text-sm">Versión 1.2.0</p>
 
                 <x-button-primary class="ms-4 !p-2">
                     {{ __('Log in') }}

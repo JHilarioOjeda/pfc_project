@@ -5,8 +5,17 @@
     <p class="text-secondarycolor text-2xl font-bold">Procesos</p>
     <div class="bg-white rounded-lg shadow-lg my-3 p-3">
 
-        <div class="pb-4 w-full flex">
-            <x-search-input class="lg:w-1/3 w-3/4" wireModel="search" placeholder="Buscar..." />
+        <div class="pb-4 w-full flex flex-col md:flex-row lg:flex-row flex-wrap gap-3 md:items-center">
+            <x-search-input class="w-full md:flex-1 lg:w-1/3 min-w-0" wireModel="search" placeholder="Buscar..." />
+
+            <select wire:model.live="filterProcess" class="inputcatalogues w-full md:flex-1 lg:w-1/3 min-w-0">
+                <option value="">Todos los procesos de NP</option>
+                @foreach ($processOptions as $option)
+                    <option value="{{ $option }}">{{ $option }}</option>
+                @endforeach
+            </select>
+
+            <input type="text" wire:model.live.debounce.300ms="filterTarima" placeholder="Número de tarima..." class="inputcatalogues w-full md:flex-1 lg:w-1/3 min-w-0">
         </div>
 
         <div class="relative overflow-x-auto rounded-lg">
@@ -14,10 +23,11 @@
                 <thead>
                     <tr class="bg-gray-200 text-sm font-semibold">
                         <th class="px-1 py-2 text-center">ID Proceso</th>
-                        <th class="px-1 py-2 hidden lg:table-cell">Tarima</th>
+                        <th class="px-1 py-2 hidden lg:table-cell"># Tarima</th>
                         <th class="px-3 py-2">Número de parte</th>
-                        <th class="px-1 py-2 hidden lg:table-cell">Orden de compra</th>
-                        <th class="px-1 py-2 hidden lg:table-cell">Orden de fabricación</th>
+                        <th class="px-3 py-2 hidden lg:table-cell">Proceso</th>
+                        {{-- <th class="px-1 py-2 hidden lg:table-cell">Orden de compra</th>
+                        <th class="px-1 py-2 hidden lg:table-cell">Orden de fabricación</th> --}}
                         <th class="px-1 py-2 hidden lg:table-cell">Cliente</th>
                         <th class="px-1 py-2 hidden lg:table-cell">Quien realizo</th>
                         <th class="px-1 py-2 hidden lg:table-cell">Fecha de inicio</th>
@@ -33,29 +43,33 @@
                                     {{$process->id}}
                                 </td>
                                 <td class="px-1 py-2 hidden lg:table-cell">
-                                    #{{$process->tarimaNp->tarima->serial_number}}
+                                    {{$process->tarimaNp->tarima->serial_number}}
                                 </td>
                                 <td scope="row" class="px-3 py-2 font-medium whitespace-nowrap">
                                     <span class="font-bold text-sm">{{$process->tarimaNp->numberPart->partnumber}}</span>
                                     
                                     <!-- Datos extra en móvil -->
                                     <div class="block lg:hidden mt-2 text-gray-500 text-sm">
-                                        <p><span class="font-semibold text-black">Tarima:</span> #{{$process->tarimaNp->tarima->serial_number}}</p>
-                                        <p><span class="font-semibold">Orden de compra:</span> {{$process->tarimaNp->oc}}</p>
-                                        <p><span class="font-semibold">Orden de fabricación:</span> {{$process->tarimaNp->of}}</p>
+                                        <p><span class="font-semibold text-black"># Tarima:</span> {{$process->tarimaNp->tarima->serial_number}}</p>
+                                        <p><span class="font-semibold">Proceso:</span> {{$process->tarimaNp->numberPart->process}}</p>
+                                        {{-- <p><span class="font-semibold">Orden de compra:</span> {{$process->tarimaNp->oc}}</p>
+                                        <p><span class="font-semibold">Orden de fabricación:</span> {{$process->tarimaNp->of}}</p> --}}
                                         <p><span class="font-semibold">Cliente:</span> {{$process->tarimaNp->tarima->customer->name}}</p>
                                         <p><span class="font-bold">Quien realizo:</span> {{$process->whomade->name ?? 'N/A'}}</p>
                                         <p><span class="font-bold">Fecha de inicio:</span> {{$process->start_date ? $process->start_date->format('d/m/Y') : 'N/A'}}</p>
                                     </div>
                                 </td>
-                                
+
                                 <!-- Columnas visibles solo en pantallas grandes o más grandes -->
-                                <td class="px-1 py-2 hidden lg:table-cell">
+                                <td class="px-3 py-2 hidden lg:table-cell">
+                                    {{$process->tarimaNp->numberPart->process}}
+                                </td>
+                                {{-- <td class="px-1 py-2 hidden lg:table-cell">
                                     {{$process->tarimaNp->oc}}
                                 </td>
                                 <td class="px-1 py-2 hidden lg:table-cell">
                                     {{$process->tarimaNp->of}}
-                                </td>
+                                </td> --}}
                                 <td class="px-1 py-2 hidden lg:table-cell">
                                     {{$process->tarimaNp->tarima->customer->name}}
                                 </td>
@@ -68,7 +82,7 @@
                                 @switch($process->status)
                                     @case('pending')
                                         <td class="px-2 py-2 text-center">
-                                            <span class="px-1 py-1 rounded-lg text-[10px] uppercase font-semibold bg-gray-200 text-gray-600">sin comenzar</span>
+                                            <span class="px-1 py-1 rounded-lg text-[9px] uppercase font-semibold bg-gray-200 text-gray-600">sin comenzar</span>
                                         </td>
                                         <td class="px-2 py-2 text-right space-y-3">
                                             @if(in_array(Auth::user()->user_type, ['1', '3', '6']))
@@ -136,7 +150,7 @@
                         @endforeach
                     @else
                         <tr>
-                            <td colspan="5" class="text-center py-4">No se encontraron procesos.</td>
+                            <td colspan="6" class="text-center py-4">No se encontraron procesos.</td>
                         </tr>
                     @endif
                 </tbody>

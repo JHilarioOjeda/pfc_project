@@ -2,12 +2,12 @@
     <x-loading functionsList="addCharge, deleteCharge, liberateCharge, confirmCharge, addDeadtime, removeDeadtime, updateProcessData, finishProcess" />
 
     <div class="w-full flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-4">
-        <x-secondary-hyperlink href="{{ route('processes') }}" target="" class="my-auto whitespace-nowrap w-fit">
+        <x-secondary-button onclick="window.history.back()" class="my-auto whitespace-nowrap w-fit">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5 mr-2">
                 <path fill-rule="evenodd" d="M7.72 12.53a.75.75 0 0 1 0-1.06l7.5-7.5a.75.75 0 1 1 1.06 1.06L9.31 12l6.97 6.97a.75.75 0 1 1-1.06 1.06l-7.5-7.5Z" clip-rule="evenodd" />
             </svg>
-            Volver
-        </x-secondary-hyperlink>
+            regresar
+        </x-secondary-button>
         <p class="text-secondarycolor text-lg sm:text-2xl font-bold leading-snug">Proceso para la parte {{ $process_selected->tarimaNp->numberPart->partnumber ?? 'N/A' }} de la tarima {{ $process_selected->tarimaNp->tarima->serial_number ?? 'N/A' }}</p>
     </div>
 
@@ -191,7 +191,12 @@
                                             <option value="2">Mesa llena de piezas</option>
                                             <option value="3">Falta de material</option>
                                             <option value="4">Falta de personal</option>
-                                            <option value="5">Reproceso de piezas</option>
+                                            <optgroup label="Reproceso de piezas">
+                                                <option value="15">Desprendimiento</option>
+                                                <option value="16">Bajo micraje</option>
+                                                <option value="17">Cobre expuesto</option>
+                                                <option value="18">Mancha</option>
+                                            </optgroup>
                                             <option value="6">Tiempo excesivo desengrase</option>
                                             <option value="7">Ajuste de soluciones</option>
                                             <option value="8">Cambio de soluciones</option>

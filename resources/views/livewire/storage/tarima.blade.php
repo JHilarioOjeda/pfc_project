@@ -6,7 +6,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5 mr-2">
                 <path fill-rule="evenodd" d="M7.72 12.53a.75.75 0 0 1 0-1.06l7.5-7.5a.75.75 0 1 1 1.06 1.06L9.31 12l6.97 6.97a.75.75 0 1 1-1.06 1.06l-7.5-7.5Z" clip-rule="evenodd" />
             </svg>
-            Volver
+            Regresar
         </x-secondary-hyperlink>
         <p class="text-secondarycolor text-2xl font-bold">@if($tarima_selected) Información de @else Nueva @endif entrada</p>
     </div>
@@ -114,7 +114,7 @@
                                 @foreach($numberPartsList as $index => $item)
                                     <tr class="border-b last:border-b-0">
                                         <td class="px-1 py-2">{{ $item['partnumber'] }}</td>
-                                        <td class="px-1 py-2">{{ $item['quantity'] }}</td>
+                                        <td class="px-1 py-2">{{ round($item['quantity'], 5) }}</td>
                                         <td class="px-1 py-2">{{ $item['oc'] }}</td>
                                         <td class="px-1 py-2">{{ $item['of'] }}</td>
                                         <td class="px-1 py-2">

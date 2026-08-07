@@ -15,10 +15,13 @@ class MeditionsReport extends Model
 
     protected $fillable = [
         'id_proccess',
+        'folio',
         'requirement',
         'method',
         'register_date',
         'document_url',
+        'status',
+        'notes',
     ];
 
     protected $casts = [

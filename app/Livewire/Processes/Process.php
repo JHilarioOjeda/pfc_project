@@ -290,6 +290,10 @@ class Process extends Component
             '12' => 'Llenado de tinas',
             '13' => 'Limpieza de piezas',
             '14' => 'Cambio de tina y/o ganchos',
+            '15' => 'Desprendimiento',
+            '16' => 'Bajo micraje',
+            '17' => 'Cobre expuesto',
+            '18' => 'Mancha',
         ];
     }
 

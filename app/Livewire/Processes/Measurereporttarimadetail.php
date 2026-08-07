@@ -15,6 +15,7 @@ class Measurereporttarimadetail extends Component
     public $tarima;
     public $reports = [];
     public $selectedReports = [];
+    public $folio;
 
     public function mount($id)
     {
@@ -39,6 +40,7 @@ class Measurereporttarimadetail extends Component
         $this->reports = $reports->map(function ($report) {
             return [
                 'id' => $report->id,
+                'folio' => $report->folio,
                 'requirement' => $report->requirement,
                 'method' => $report->method,
                 'register_date' => $report->register_date,
@@ -65,6 +67,16 @@ class Measurereporttarimadetail extends Component
                 ->show();
             return;
         }
+
+        $this->validate([
+            'folio' => 'required|string|max:255',
+        ], [], [
+            'folio' => 'Folio',
+        ]);
+
+        MeditionsReport::whereIn('id', $this->selectedReports)->update([
+            'folio' => $this->folio,
+        ]);
 
         $ids = implode(',', $this->selectedReports);
 
