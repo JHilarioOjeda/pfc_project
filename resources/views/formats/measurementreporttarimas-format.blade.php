@@ -79,7 +79,7 @@
                     </tr>
                     <tr>
                         <td class="border border-black px-2 py-1 font-semibold">FOLIO</td>
-                        <td class="border border-black px-2 py-1 text-center">{{ optional($firstReport)->id }}</td>
+                        <td class="border border-black px-2 py-1 text-center">{{ optional($firstReport)->folio }}</td>
                     </tr>
                 </table>
             </div>

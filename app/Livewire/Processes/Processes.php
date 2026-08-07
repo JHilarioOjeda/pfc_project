@@ -13,6 +13,7 @@ use RealRashid\SweetAlert\Facades\Alert;
 use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
+use Livewire\Attributes\Url;
 use Auth;
 use Throwable;
 use Log;
@@ -21,6 +22,7 @@ use App\Models\TarimaNp;
 use App\Models\Customer;
 use App\Models\User;
 use App\Models\Proccess;
+use App\Models\NumberPart;
 use Illuminate\Container\Attributes\Auth as AttributesAuth;
 use Illuminate\Support\Facades\Auth as FacadesAuth;
 use Livewire\Component;
@@ -32,11 +34,37 @@ class Processes extends Component
 
     public $search = '';
 
+    #[Url(history: true)]
+    public $filterProcess = '';
+
+    #[Url(history: true)]
+    public $filterTarima = '';
+
+    public function updatedFilterProcess(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedFilterTarima(): void
+    {
+        $this->resetPage();
+    }
+
     public function render(){
 
         $procesos = Proccess::with(['tarimaNp.tarima', 'tarimaNp.numberPart'])
             ->when(Auth::user()->user_type == '5', function($query) {
                 $query->where('status', 'finished');
+            })
+            ->when($this->filterProcess !== '', function($query) {
+                $query->whereHas('tarimaNp.numberPart', function($q) {
+                    $q->where('process', 'LIKE', '%' . $this->filterProcess . '%');
+                });
+            })
+            ->when($this->filterTarima !== '', function($query) {
+                $query->whereHas('tarimaNp.tarima', function($q) {
+                    $q->where('serial_number', 'LIKE', '%' . $this->filterTarima . '%');
+                });
             })
             ->where(function($query) {
                 $query->whereHas('tarimaNp', function($q) {
@@ -53,6 +81,12 @@ class Processes extends Component
             ->orderBy('id', 'DESC')
             ->paginate(25);
 
-        return view('livewire.processes.processes', ['processes' => $procesos]);
+        $processOptions = NumberPart::whereNotNull('process')
+            ->where('process', '<>', '')
+            ->distinct()
+            ->orderBy('process')
+            ->pluck('process');
+
+        return view('livewire.processes.processes', ['processes' => $procesos, 'processOptions' => $processOptions]);
     }
 }

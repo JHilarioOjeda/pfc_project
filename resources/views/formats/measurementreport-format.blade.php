@@ -32,7 +32,7 @@
 
                 <div class="text-[10px] border border-black px-2 py-1 leading-tight w-2/12">
                     <p><span class="font-semibold">Punto normativo:</span> 9.1.3 Análisis y Evaluación.</p>
-                    <p><span class="font-semibold">Código:</span> FO-CA-CA-24</p>
+                    <p><span class="font-semibold">Código:</span> FO-CA-CA-14</p>
                     <p><span class="font-semibold">Revisión:</span> 01</p>
                 </div>
             </div>
@@ -46,7 +46,7 @@
                     </tr>
                     <tr>
                         <td class="border border-black px-2 py-1 font-semibold">FOLIO</td>
-                        <td class="border border-black px-2 py-1 text-center">{{ $report->id }}</td>
+                        <td class="border border-black px-2 py-1 text-center">{{ $report->folio }}</td>
                     </tr>
                 </table>
             </div>

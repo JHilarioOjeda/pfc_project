@@ -1,7 +1,7 @@
 <div class="containerpric">
     <x-loading functionsList="" />
 
-    <p class="text-secondarycolor text-2xl font-bold">Reportes de procesos diarios</p>
+    <p class="text-secondarycolor text-2xl font-bold">Reporte de procesos diarios</p>
 
     <div class="bg-white rounded-lg shadow-lg my-3 p-3 space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4">
