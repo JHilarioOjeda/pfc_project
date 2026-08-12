@@ -12,8 +12,6 @@ class Measurereporttarimas extends Component
 
     public $search = '';
 
-    protected $paginationTheme = 'bootstrap';
-
     public function updatingSearch()
     {
         $this->resetPage();
@@ -39,8 +37,6 @@ class Measurereporttarimas extends Component
             ->orderBy('id', 'DESC')
             ->paginate(25);
 
-        return view('livewire.processes.measurereporttarimas', [
-            'tarimas' => $tarimas,
-        ]);
+        return view('livewire.processes.measurereporttarimas', ['tarimas' => $tarimas]);
     }
 }
