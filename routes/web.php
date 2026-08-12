@@ -31,7 +31,7 @@ Route::middleware(['auth:sanctum',config('jetstream.auth_session'),'verified','u
     //
 
     //ALMACEN
-        Route::get('/storage', function () {
+        Route::get('/storages', function () {
             return view('storage.storage');
         })->name('storage');
 
