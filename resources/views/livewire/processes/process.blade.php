@@ -50,7 +50,7 @@
                     </div>
                     <div class="flex flex-col">
                         <span class="text-secondarycolor text-sm">Decímetros</span>
-                        <span class="text-base sm:text-lg font-medium">{{ $process_selected->tarimaNp->numberPart->decimeters ?? 'N/A' }}</span>
+                        <span class="text-base sm:text-lg font-medium">{{ round($process_selected->tarimaNp->numberPart->decimeters ?? 0, 5) }}</span>
                     </div>
                     <div class="flex flex-col">
                         <span class="text-secondarycolor text-sm">Detalles</span>

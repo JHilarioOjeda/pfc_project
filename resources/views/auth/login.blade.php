@@ -74,7 +74,7 @@
             </div>
 
             <div class="border-t mt-6 pt-4 text-center">
-                <p class="text-xs text-gray-400">Versión 1.2.0</p>
+                <p class="text-xs text-gray-400">Versión 1.3.0</p>
             </div>
         </form>
     </x-authentication-card>

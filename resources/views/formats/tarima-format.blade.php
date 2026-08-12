@@ -95,7 +95,7 @@
     </div>
 
     <!-- BOTONES FLOTANTES IMPRESIÓN / PDF (pensado para tablet) -->
-    <x-secondary-button type="button" class="fixed bottom-4 right-32 z-50 px-4 py-3 text-sm flex items-center shadow-lg no-print" onclick="saveTarimaPdf()">
+    <x-secondary-button type="button" class="fixed bottom-4 right-36 z-50 px-4 py-3 text-sm flex items-center shadow-lg no-print" onclick="saveTarimaPdf()">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5 mr-2">
             <path d="M6.75 3A2.25 2.25 0 0 0 4.5 5.25v3A2.25 2.25 0 0 0 6.75 10.5h10.5A2.25 2.25 0 0 0 19.5 8.25v-3A2.25 2.25 0 0 0 17.25 3h-10.5Z" />
             <path fill-rule="evenodd" d="M6.75 12a.75.75 0 0 0 0 1.5h7.5a.75.75 0 0 0 0-1.5h-7.5Z" clip-rule="evenodd" />

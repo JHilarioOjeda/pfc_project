@@ -56,8 +56,7 @@
                     @endif
                 </tbody>
             </table>
-
-            {{ $tarimas->links() }}
+        {{$tarimas->links()}}
         </div>
     </div>
 
