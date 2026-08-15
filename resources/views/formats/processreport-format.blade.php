@@ -38,189 +38,272 @@
             .report-page {
                 page-break-after: always;
             }
+
+            .report-page:last-of-type {
+                page-break-after: auto;
+            }
         }
     </style>
 
-    <div class="w-full overflow-x-auto">
-        <div class="bg-white rounded-lg mx-auto text-sm overflow-y-hidden flex flex-col mt-4 print-area report-page" style="height: 27.94cm; width: 21.59cm; padding: 1cm;">
-            <!-- ENCABEZADO -->
-            <div class="flex items-start justify-between border-b border-black pb-2">
-                <div class="flex items-center space-x-2 w-2/12">
-                    <img src="/imgs/logos/principallogo.jpg" class="w-full" alt="Logo">
+    @php
+        // ===== PAGINACIÓN DEL REPORTE =====
+        // Cada "página" es un bloque de altura fija (carta, 27.94cm). Si la tabla de
+        // procesos no cabe completa en una sola hoja, se reparte en varias páginas de
+        // solo tabla y se agrega una página final exclusiva para "Causas de tiempo
+        // muerto" y la firma, para evitar que el contenido se recorte por el
+        // overflow-y-hidden de cada página.
+        //
+        // Los valores de capacidad son aproximados (filas de tabla que caben en el
+        // alto disponible de una hoja carta con 1cm de margen) y pueden ajustarse
+        // si cambia el tamaño de fuente o el padding de las celdas.
+        $maxRowsSinglePage   = 20; // filas que caben junto con checklist + causas + firma en una sola página
+        $maxRowsPerTablePage = 26; // filas que caben en una página dedicada solo a la tabla
+        $checklistReserve    = 9;  // filas de tabla "equivalentes" que ocupa el checklist en la primera página
+
+        $totalRows = $processes->sum(fn ($p) => max(1, $p->charges->count()));
+
+        $reportPages = collect();
+
+        if ($processes->isEmpty() || $totalRows <= $maxRowsSinglePage) {
+            $reportPages->push([
+                'processes'     => $processes,
+                'showChecklist' => true,
+                'showTable'     => true,
+                'showClosing'   => true,
+            ]);
+        } else {
+            $chunk       = collect();
+            $chunkRows   = 0;
+            $isFirstPage = true;
+            $capacity    = max(5, $maxRowsPerTablePage - $checklistReserve);
+
+            foreach ($processes as $process) {
+                $rowCount = max(1, $process->charges->count());
+
+                if ($chunkRows > 0 && ($chunkRows + $rowCount) > $capacity) {
+                    $reportPages->push([
+                        'processes'     => $chunk,
+                        'showChecklist' => $isFirstPage,
+                        'showTable'     => true,
+                        'showClosing'   => false,
+                    ]);
+                    $chunk       = collect();
+                    $chunkRows   = 0;
+                    $isFirstPage = false;
+                    $capacity    = $maxRowsPerTablePage;
+                }
+
+                $chunk->push($process);
+                $chunkRows += $rowCount;
+            }
+
+            if ($chunk->isNotEmpty()) {
+                $reportPages->push([
+                    'processes'     => $chunk,
+                    'showChecklist' => $isFirstPage,
+                    'showTable'     => true,
+                    'showClosing'   => false,
+                ]);
+            }
+
+            // Página final exclusiva para causas de tiempo muerto y firma.
+            $reportPages->push([
+                'processes'     => collect(),
+                'showChecklist' => false,
+                'showTable'     => false,
+                'showClosing'   => true,
+            ]);
+        }
+
+        $totalReportPages = $reportPages->count();
+    @endphp
+
+    <div class="w-full overflow-x-auto print-area">
+        @foreach ($reportPages as $pageIndex => $page)
+            <div class="bg-white rounded-lg mx-auto text-sm overflow-y-hidden flex flex-col mt-4 report-page" style="height: 27.94cm; width: 21.59cm; padding: 1cm;">
+                <!-- ENCABEZADO -->
+                <div class="flex items-start justify-between border-b border-black pb-2">
+                    <div class="flex items-center space-x-2 w-2/12">
+                        <img src="/imgs/logos/principallogo.jpg" class="w-full" alt="Logo">
+                    </div>
+
+                    <div class="flex-1 text-center w-8/12 leading-tight">
+                        <p class="font-bold text-base tracking-wide">RECUBRIMIENTOS INDUSTRIALES PFC S.A. DE C.V.</p>
+                        <p class="font-semibold text-sm tracking-wide mt-1">CONTROL DE PRODUCCIÓN - REPORTE DIARIO</p>
+                    </div>
+
+                    <div class="text-[10px] border border-black px-2 py-1 leading-tight w-2/12">
+                        <p><span class="font-semibold">Código:</span> FO-PR-PR-01</p>
+                        <p><span class="font-semibold">Revisión:</span> 01</p>
+                        <p><span class="font-semibold">Fecha:</span> {{ \Carbon\Carbon::parse('21-10-25')->format('d/m/Y') }}</p>
+                        @if($totalReportPages > 1)
+                            <p><span class="font-semibold">Página:</span> {{ $pageIndex + 1 }} de {{ $totalReportPages }}</p>
+                        @endif
+                    </div>
                 </div>
 
-                <div class="flex-1 text-center w-8/12 leading-tight">
-                    <p class="font-bold text-base tracking-wide">RECUBRIMIENTOS INDUSTRIALES PFC S.A. DE C.V.</p>
-                    <p class="font-semibold text-sm tracking-wide mt-1">CONTROL DE PRODUCCIÓN - REPORTE DIARIO</p>
-                </div>
-
-                <div class="text-[10px] border border-black px-2 py-1 leading-tight w-2/12">
-                    <!-- <p><span class="font-semibold">Fecha:</span> {{ \Carbon\Carbon::parse($date)->format('d/m/Y') }}</p>
-                    <p><span class="font-semibold">Líder:</span> {{ $leader->name }}</p> -->
-                    <p><span class="font-semibold">Código:</span> FO-PR-PR-01</p>
-                    <p><span class="font-semibold">Revisión:</span> 01</p>
-                    <p><span class="font-semibold">Fecha:</span> {{ \Carbon\Carbon::parse('21-10-25')->format('d/m/Y') }}</p>
-                </div>
-            </div>
-
-            <!-- CHECKLIST DE ARRANQUE -->
-            <div class="w-full mt-4">
-                <p class="font-semibold text-sm mb-1">Checklist de arranque del día</p>
-                @if($checklist)
-                    <table class="w-full border-collapse border border-black text-[11px]">
-                        <thead class="bg-gray-100">
-                            <tr>
-                                <th class="border border-black px-2 py-1 text-left">Pregunta</th>
-                                <th class="border border-black px-2 py-1 text-center">Sí</th>
-                                <th class="border border-black px-2 py-1 text-center">No</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ((array) $checklist->questions as $question)
-                                @php
-                                    $answer = $question['answer'] ?? null;
-                                @endphp
-                                <tr>
-                                    <td class="border border-black px-2 py-1">{{ $question['label'] ?? $question['key'] ?? '' }}</td>
-                                    <td class="border border-black px-2 py-1 text-center">@if($answer === true) X @endif</td>
-                                    <td class="border border-black px-2 py-1 text-center">@if($answer === false) X @endif</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                @else
-                    <p class="text-[11px] text-gray-600 italic">No se encontró checklist capturado para esta fecha y líder.</p>
-                @endif
-            </div>
-
-            <!-- PLAN Y REPORTE DE PRODUCCIÓN -->
-            <div class="w-full mt-4">
-                <p class="font-semibold text-sm mb-1">Plan y reporte de producción</p>
-                <div class="py-2 flex space-x-4">
-                    <p class="text-[11px] mb-1"><span class="font-semibold">Fecha:</span> {{ \Carbon\Carbon::parse($date)->format('d/m/Y') }}</p>
-                    <p class="text-[11px] mb-1"><span class="font-semibold">Líder de proceso:</span> {{ $leader->name }}</p>
-                </div>
-                <table class="w-full border-collapse border border-black text-[10px]">
-                    <thead class="bg-gray-100">
-                        <tr>
-                            <th class="border border-black px-1 py-1 text-center">ID Proceso</th>
-                            <th class="border border-black px-1 py-1 text-center">Carga</th>
-                            <th class="border border-black px-1 py-1 text-center">Tarima</th>
-                            <th class="border border-black px-1 py-1 text-center">Cliente</th>
-                            <th class="border border-black px-1 py-1 text-center">OF</th>
-                            <th class="border border-black px-1 py-1 text-center">No. de parte</th>
-                            {{-- <th class="border border-black px-1 py-1 text-center">Decímetros</th> --}}
-                            <th class="border border-black px-1 py-1 text-center">Pzas carga</th>
-                            <th class="border border-black px-1 py-1 text-center">Pzas totales proceso</th>
-                            <th class="border border-black px-1 py-1 text-center">Decímetros trabajados</th>
-                            <th class="border border-black px-1 py-1 text-center">Línea</th>
-                            <th class="border border-black px-1 py-1 text-center">Operador(es)</th>
-                            <th class="border border-black px-1 py-1 text-center">Inicio</th>
-                            <th class="border border-black px-1 py-1 text-center">Fin</th>
-                            <th class="border border-black px-1 py-1 text-center">T. muerto (hrs)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($processes as $process)
-                            @php
-                                $tarimaNp   = optional($process->tarimaNp);
-                                $tarima     = optional($tarimaNp->tarima);
-                                $numberPart = optional($tarimaNp->numberPart);
-                                $decimeters = $tarimaNp->numberPart->decimeters ?? 0;
-                                $charges    = $process->charges;
-                                $totalProcessPieces = $charges->sum('quantity_pieces');
-                                $totalDecimetersWorked = $totalProcessPieces * $decimeters;
-                            @endphp
-                            @if($charges->isEmpty())
-                                <tr>
-                                    <td class="border border-black px-1 py-1 text-center">{{ $process->id }}</td>
-                                    <td class="border border-black px-1 py-1 text-center text-gray-400 italic">—</td>
-                                    <td class="border border-black px-1 py-1 text-center">#{{ $tarima->serial_number ?? 'N/A' }}</td>
-                                    <td class="border border-black px-1 py-1 text-center">{{ optional($tarima->customer)->name ?? 'N/A' }}</td>
-                                    <td class="border border-black px-1 py-1 text-center">{{ $tarimaNp->of ?? 'N/A' }}</td>
-                                    <td class="border border-black px-1 py-1 text-center">{{ $numberPart->partnumber ?? 'N/A' }}</td>
-                                    {{-- <td class="border border-black px-1 py-1 text-center">{{ round($decimeters, 4) }}</td> --}}
-                                    <td class="border border-black px-1 py-1 text-center">—</td>
-                                    <td class="border border-black px-1 py-1 text-center">0</td>
-                                    <td class="border border-black px-1 py-1 text-center">0</td>
-                                    <td class="border border-black px-1 py-1 text-center">{{ optional($process->line)->name }}</td>
-                                    <td class="border border-black px-1 py-1 text-center">{{ $process->operator_name }}</td>
-                                    <td class="border border-black px-1 py-1 text-center">{{ optional($process->start_date)->format('H:i') }}</td>
-                                    <td class="border border-black px-1 py-1 text-center">{{ optional($process->finished_date)->format('H:i') }}</td>
-                                    <td class="border border-black px-1 py-1 text-center">0</td>
-                                </tr>
-                            @else
-                                @foreach($charges as $ci => $charge)
-                                    @php
-                                        $totalProcessDeadtime = $charges->sum(fn($c) => $c->timeouts->sum('hours'));
-                                    @endphp
+                @if($page['showChecklist'])
+                    <!-- CHECKLIST DE ARRANQUE -->
+                    <div class="w-full mt-4">
+                        <p class="font-semibold text-sm mb-1">Checklist de arranque del día</p>
+                        @if($checklist)
+                            <table class="w-full border-collapse border border-black text-[11px]">
+                                <thead class="bg-gray-100">
                                     <tr>
-                                        @if($ci === 0)
-                                            <td class="border border-black px-1 py-1 text-center font-semibold" rowspan="{{ $charges->count() }}">{{ $process->id }}</td>
-                                        @endif
-                                        <td class="border border-black px-1 py-1 text-center">#{{ $ci + 1 }}</td>
-                                        @if($ci === 0)
-                                            <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">#{{ $tarima->serial_number ?? 'N/A' }}</td>
-                                            <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ optional($tarima->customer)->name ?? 'N/A' }}</td>
-                                            <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ $tarimaNp->of ?? 'N/A' }}</td>
-                                            <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ $numberPart->partnumber ?? 'N/A' }}</td>
-                                            {{-- <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ round($decimeters, 4) }}</td> --}}
-                                        @endif
-                                        <td class="border border-black px-1 py-1 text-center">{{ round($charge->quantity_pieces, 2) }}</td>
-                                        @if($ci === 0)
-                                            <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ round($totalProcessPieces, 2) }}</td>
-                                            <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ round($totalDecimetersWorked, 4) }}</td>
-                                            <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ optional($process->line)->name }}</td>
-                                            <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ $process->operator_name }}</td>
-                                            <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ optional($process->start_date)->format('H:i') }}</td>
-                                            <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ optional($process->finished_date)->format('H:i') }}</td>
-                                            <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ number_format($totalProcessDeadtime, 2) }}</td>
-                                        @endif
+                                        <th class="border border-black px-2 py-1 text-left">Pregunta</th>
+                                        <th class="border border-black px-2 py-1 text-center">Sí</th>
+                                        <th class="border border-black px-2 py-1 text-center">No</th>
                                     </tr>
-                                @endforeach
-                            @endif
-                        @empty
-                            <tr>
-                                <td colspan="15" class="border border-black px-2 py-4 text-center text-gray-500">No se encontraron procesos para la fecha y líder seleccionados.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                                </thead>
+                                <tbody>
+                                    @foreach ((array) $checklist->questions as $question)
+                                        @php
+                                            $answer = $question['answer'] ?? null;
+                                        @endphp
+                                        <tr>
+                                            <td class="border border-black px-2 py-1">{{ $question['label'] ?? $question['key'] ?? '' }}</td>
+                                            <td class="border border-black px-2 py-1 text-center">@if($answer === true) X @endif</td>
+                                            <td class="border border-black px-2 py-1 text-center">@if($answer === false) X @endif</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        @else
+                            <p class="text-[11px] text-gray-600 italic">No se encontró checklist capturado para esta fecha y líder.</p>
+                        @endif
+                    </div>
+                @endif
 
-            <!-- CAUSAS DE TIEMPO MUERTO -->
-            <div class="w-full mt-4 text-[10px]">
-                <p class="font-semibold text-sm mb-1">Causas de tiempo muerto</p>
-                @if(!empty($deadtimeByType))
-                    <table class="w-full border-collapse border border-black">
-                        <thead class="bg-gray-100">
-                            <tr>
-                                <th class="border border-black px-2 py-1 text-left">Razón</th>
-                                <th class="border border-black px-2 py-1 text-center">Horas</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($deadtimeByType as $type => $hours)
+                @if($page['showTable'])
+                    <!-- PLAN Y REPORTE DE PRODUCCIÓN -->
+                    <div class="w-full mt-4">
+                        <p class="font-semibold text-sm mb-1">Plan y reporte de producción</p>
+                        <div class="py-2 flex space-x-4">
+                            <p class="text-[11px] mb-1"><span class="font-semibold">Fecha:</span> {{ \Carbon\Carbon::parse($date)->format('d/m/Y') }}</p>
+                            <p class="text-[11px] mb-1"><span class="font-semibold">Líder de proceso:</span> {{ $leader->name }}</p>
+                        </div>
+                        <table class="w-full border-collapse border border-black text-[10px]">
+                            <thead class="bg-gray-100">
                                 <tr>
-                                    <td class="border border-black px-2 py-1">{{ $type }}</td>
-                                    <td class="border border-black px-2 py-1 text-center">{{ round($hours, 2) }}</td>
+                                    <th class="border border-black px-1 py-1 text-center">ID Proceso</th>
+                                    <th class="border border-black px-1 py-1 text-center">Carga</th>
+                                    <th class="border border-black px-1 py-1 text-center">Tarima</th>
+                                    <th class="border border-black px-1 py-1 text-center">Cliente</th>
+                                    <th class="border border-black px-1 py-1 text-center">OF</th>
+                                    <th class="border border-black px-1 py-1 text-center">No. de parte</th>
+                                    <th class="border border-black px-1 py-1 text-center">Pzas carga</th>
+                                    <th class="border border-black px-1 py-1 text-center">Pzas totales proceso</th>
+                                    <th class="border border-black px-1 py-1 text-center">Decímetros trabajados</th>
+                                    <th class="border border-black px-1 py-1 text-center">Línea</th>
+                                    <th class="border border-black px-1 py-1 text-center">Operador(es)</th>
+                                    <th class="border border-black px-1 py-1 text-center">Inicio</th>
+                                    <th class="border border-black px-1 py-1 text-center">Fin</th>
+                                    <th class="border border-black px-1 py-1 text-center">T. muerto (hrs)</th>
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                    <p class="mt-1"><span class="font-semibold">Total tiempo muerto:</span> {{ round($totalDeadtime, 2) }} hrs</p>
-                @else
-                    <p class="italic text-gray-600">No hay tiempos muertos registrados para los procesos seleccionados.</p>
+                            </thead>
+                            <tbody>
+                                @forelse ($page['processes'] as $process)
+                                    @php
+                                        $tarimaNp   = optional($process->tarimaNp);
+                                        $tarima     = optional($tarimaNp->tarima);
+                                        $numberPart = optional($tarimaNp->numberPart);
+                                        $decimeters = $tarimaNp->numberPart->decimeters ?? 0;
+                                        $charges    = $process->charges;
+                                        $totalProcessPieces = $charges->sum('quantity_pieces');
+                                        $totalDecimetersWorked = $totalProcessPieces * $decimeters;
+                                    @endphp
+                                    @if($charges->isEmpty())
+                                        <tr>
+                                            <td class="border border-black px-1 py-1 text-center">{{ $process->id }}</td>
+                                            <td class="border border-black px-1 py-1 text-center text-gray-400 italic">—</td>
+                                            <td class="border border-black px-1 py-1 text-center">#{{ $tarima->serial_number ?? 'N/A' }}</td>
+                                            <td class="border border-black px-1 py-1 text-center">{{ optional($tarima->customer)->name ?? 'N/A' }}</td>
+                                            <td class="border border-black px-1 py-1 text-center">{{ $tarimaNp->of ?? 'N/A' }}</td>
+                                            <td class="border border-black px-1 py-1 text-center">{{ $numberPart->partnumber ?? 'N/A' }}</td>
+                                            <td class="border border-black px-1 py-1 text-center">—</td>
+                                            <td class="border border-black px-1 py-1 text-center">0</td>
+                                            <td class="border border-black px-1 py-1 text-center">0</td>
+                                            <td class="border border-black px-1 py-1 text-center">{{ optional($process->line)->name }}</td>
+                                            <td class="border border-black px-1 py-1 text-center">{{ $process->operator_name }}</td>
+                                            <td class="border border-black px-1 py-1 text-center">{{ optional($process->start_date)->format('H:i') }}</td>
+                                            <td class="border border-black px-1 py-1 text-center">{{ optional($process->finished_date)->format('H:i') }}</td>
+                                            <td class="border border-black px-1 py-1 text-center">0</td>
+                                        </tr>
+                                    @else
+                                        @foreach($charges as $ci => $charge)
+                                            @php
+                                                $totalProcessDeadtime = $charges->sum(fn($c) => $c->timeouts->sum('hours'));
+                                            @endphp
+                                            <tr>
+                                                @if($ci === 0)
+                                                    <td class="border border-black px-1 py-1 text-center font-semibold" rowspan="{{ $charges->count() }}">{{ $process->id }}</td>
+                                                @endif
+                                                <td class="border border-black px-1 py-1 text-center">#{{ $ci + 1 }}</td>
+                                                @if($ci === 0)
+                                                    <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">#{{ $tarima->serial_number ?? 'N/A' }}</td>
+                                                    <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ optional($tarima->customer)->name ?? 'N/A' }}</td>
+                                                    <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ $tarimaNp->of ?? 'N/A' }}</td>
+                                                    <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ $numberPart->partnumber ?? 'N/A' }}</td>
+                                                @endif
+                                                <td class="border border-black px-1 py-1 text-center">{{ round($charge->quantity_pieces, 2) }}</td>
+                                                @if($ci === 0)
+                                                    <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ round($totalProcessPieces, 2) }}</td>
+                                                    <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ round($totalDecimetersWorked, 4) }}</td>
+                                                    <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ optional($process->line)->name }}</td>
+                                                    <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ $process->operator_name }}</td>
+                                                    <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ optional($process->start_date)->format('H:i') }}</td>
+                                                    <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ optional($process->finished_date)->format('H:i') }}</td>
+                                                    <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ number_format($totalProcessDeadtime, 2) }}</td>
+                                                @endif
+                                            </tr>
+                                        @endforeach
+                                    @endif
+                                @empty
+                                    <tr>
+                                        <td colspan="14" class="border border-black px-2 py-4 text-center text-gray-500">No se encontraron procesos para la fecha y líder seleccionados.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+
+                @if($page['showClosing'])
+                    <!-- CAUSAS DE TIEMPO MUERTO -->
+                    <div class="w-full mt-4 text-[10px]">
+                        <p class="font-semibold text-sm mb-1">Causas de tiempo muerto</p>
+                        @if(!empty($deadtimeByType))
+                            <table class="w-full border-collapse border border-black">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="border border-black px-2 py-1 text-left">Razón</th>
+                                        <th class="border border-black px-2 py-1 text-center">Horas</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($deadtimeByType as $type => $hours)
+                                        <tr>
+                                            <td class="border border-black px-2 py-1">{{ $type }}</td>
+                                            <td class="border border-black px-2 py-1 text-center">{{ round($hours, 2) }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                            <p class="mt-1"><span class="font-semibold">Total tiempo muerto:</span> {{ round($totalDeadtime, 2) }} hrs</p>
+                        @else
+                            <p class="italic text-gray-600">No hay tiempos muertos registrados para los procesos seleccionados.</p>
+                        @endif
+                    </div>
+
+                    <!-- FIRMA -->
+                    <div class="w-full mt-8 flex flex-col items-center justify-end flex-1">
+                        <div class="w-1/2 border-t border-black mt-8 pt-1 text-center text-[11px]">
+                            Nombre y firma del líder de proceso
+                        </div>
+                    </div>
                 @endif
             </div>
-
-            <!-- FIRMA -->
-            <div class="w-full mt-8 flex flex-col items-center justify-end flex-1">
-                <div class="w-1/2 border-t border-black mt-8 pt-1 text-center text-[11px]">
-                    Nombre y firma del líder de proceso
-                </div>
-            </div>
-        </div>
+        @endforeach
     </div>
 </x-app-layout>
     <script>
@@ -238,7 +321,8 @@
                 filename:     filename,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2 },
-                jsPDF:        { unit: 'mm', format: 'letter', orientation: 'portrait' }
+                jsPDF:        { unit: 'mm', format: 'letter', orientation: 'portrait' },
+                pagebreak:    { mode: ['css', 'legacy'] }
             };
 
             try {
