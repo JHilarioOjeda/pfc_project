@@ -49,7 +49,7 @@
                         <span class="text-base sm:text-lg font-medium">{{ $process_selected->tarimaNp->numberPart->process ?? 'N/A' }}</span>
                     </div>
                     <div class="flex flex-col">
-                        <span class="text-secondarycolor text-sm">Decímetros</span>
+                        <span class="text-secondarycolor text-sm">Decímetros de pieza</span>
                         <span class="text-base sm:text-lg font-medium">{{ round($process_selected->tarimaNp->numberPart->decimeters ?? 0, 5) }}</span>
                     </div>
                     <div class="flex flex-col">
@@ -84,7 +84,11 @@
                 <div class="flex space-x-10">
                     <div class="flex flex-col w-full lg:w-1/2 items-center">
                         <span class="text-secondarycolor text-xs sm:text-sm text-center">Total a procesar</span>
-                        <span class="text-lg sm:text-xl font-medium text-center">{{ round($piezasTotales, 2) }}</span>
+                        <span class="text-lg sm:text-xl font-medium text-center">{{ round($piezasTotales , 2) }}</span>
+                    </div>
+                    <div class="flex flex-col w-full lg:w-1/2 items-center">
+                        <span class="text-secondarycolor text-xs sm:text-sm text-center">Decímetros a procesar</span>
+                        <span class="text-lg sm:text-xl font-medium text-center">{{ round($piezasTotales * $process_selected->tarimaNp->numberPart->decimeters, 4) }}</span>
                     </div>
                     <div class="flex flex-col w-full lg:w-1/2 items-center">
                         <span class="text-secondarycolor text-xs sm:text-sm text-center">Piezas restantes</span>

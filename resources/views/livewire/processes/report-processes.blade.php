@@ -121,10 +121,13 @@
                                         <th class="px-2 py-2 text-center">Carga #</th>
                                         <th class="px-2 py-2">Tarima</th>
                                         <th class="px-2 py-2">NP</th>
+                                        <th class="px-2 py-2 hidden md:table-cell">Decímetros</th>
                                         <th class="px-2 py-2 hidden md:table-cell">OF</th>
                                         <th class="px-2 py-2 hidden md:table-cell">Cliente</th>
                                         <th class="px-2 py-2 hidden md:table-cell">Línea</th>
                                         <th class="px-2 py-2 hidden md:table-cell text-center">Pzas carga</th>
+                                        <th class="px-2 py-2 hidden md:table-cell text-center">Pzas totales proceso</th>
+                                        <th class="px-2 py-2 hidden md:table-cell text-center">Decímetros trabajados</th>
                                         <th class="px-2 py-2 hidden md:table-cell text-center">Estatus carga</th>
                                         <th class="px-2 py-2 hidden md:table-cell text-center">T. muerto (hrs)</th>
                                     </tr>
@@ -135,7 +138,10 @@
                                             $tarimaNp   = optional($process->tarimaNp);
                                             $tarima     = optional($tarimaNp->tarima);
                                             $numberPart = optional($tarimaNp->numberPart);
+                                            $decimeters = $tarimaNp->numberPart->decimeters ?? 0;
                                             $charges    = $process->charges;
+                                            $totalProcessPieces = $charges->sum('quantity_pieces');
+                                            $totalDecimetersWorked = $totalProcessPieces * $decimeters;
                                         @endphp
                                         @if($charges->isEmpty())
                                             <tr class="border-t border-gray-200">
@@ -143,10 +149,13 @@
                                                 <td class="px-2 py-2 text-center text-gray-400 italic">Sin cargas</td>
                                                 <td class="px-2 py-2">#{{ $tarima->serial_number ?? 'N/A' }}</td>
                                                 <td class="px-2 py-2">{{ $numberPart->partnumber ?? 'N/A' }}</td>
+                                                <td class="px-2 py-2 hidden md:table-cell">{{ round($decimeters, 4) }}</td>
                                                 <td class="px-2 py-2 hidden md:table-cell">{{ $tarimaNp->of ?? 'N/A' }}</td>
                                                 <td class="px-2 py-2 hidden md:table-cell">{{ optional($tarima->customer)->name ?? 'N/A' }}</td>
                                                 <td class="px-2 py-2 hidden md:table-cell">{{ optional($process->line)->name ?? '' }}</td>
                                                 <td class="px-2 py-2 hidden md:table-cell text-center">—</td>
+                                                <td class="px-2 py-2 hidden md:table-cell text-center">0</td>
+                                                <td class="px-2 py-2 hidden md:table-cell text-center">0.00</td>
                                                 <td class="px-2 py-2 hidden md:table-cell text-center">—</td>
                                                 <td class="px-2 py-2 hidden md:table-cell text-center">—</td>
                                             </tr>
@@ -169,11 +178,16 @@
                                                     @if($ci === 0)
                                                         <td class="px-2 py-2" rowspan="{{ $charges->count() }}">#{{ $tarima->serial_number ?? 'N/A' }}</td>
                                                         <td class="px-2 py-2" rowspan="{{ $charges->count() }}">{{ $numberPart->partnumber ?? 'N/A' }}</td>
+                                                        <td class="px-2 py-2 hidden md:table-cell" rowspan="{{ $charges->count() }}">{{ round($decimeters, 4) }}</td>
                                                         <td class="px-2 py-2 hidden md:table-cell" rowspan="{{ $charges->count() }}">{{ $tarimaNp->of ?? 'N/A' }}</td>
                                                         <td class="px-2 py-2 hidden md:table-cell" rowspan="{{ $charges->count() }}">{{ optional($tarima->customer)->name ?? 'N/A' }}</td>
                                                         <td class="px-2 py-2 hidden md:table-cell" rowspan="{{ $charges->count() }}">{{ optional($process->line)->name ?? '' }}</td>
                                                     @endif
                                                     <td class="px-2 py-2 hidden md:table-cell text-center">{{ round($charge->quantity_pieces, 2) }}</td>
+                                                    @if($ci === 0)
+                                                        <td class="px-2 py-2 hidden md:table-cell text-center" rowspan="{{ $charges->count() }}">{{ round($totalProcessPieces, 2) }}</td>
+                                                        <td class="px-2 py-2 hidden md:table-cell text-center" rowspan="{{ $charges->count() }}">{{ round($totalDecimetersWorked, 4) }}</td>
+                                                    @endif
                                                     <td class="px-2 py-2 hidden md:table-cell text-center">{{ $statusLabel }}</td>
                                                     <td class="px-2 py-2 hidden md:table-cell text-center">{{ number_format($chargeDeadtime, 2) }}</td>
                                                 </tr>
@@ -181,7 +195,7 @@
                                         @endif
                                     @empty
                                         <tr>
-                                            <td colspan="10" class="px-2 py-4 text-center text-sm text-gray-500">Sin procesos.</td>
+                                            <td colspan="13" class="px-2 py-4 text-center text-sm text-gray-500">Sin procesos.</td>
                                         </tr>
                                     @endforelse
                                 </tbody>
@@ -246,10 +260,13 @@
                                 <th class="px-2 py-2 text-center">Carga #</th>
                                 <th class="px-2 py-2">Tarima</th>
                                 <th class="px-2 py-2">NP</th>
+                                <th class="px-2 py-2 hidden md:table-cell">Decímetros</th>
                                 <th class="px-2 py-2 hidden md:table-cell">OF</th>
                                 <th class="px-2 py-2 hidden md:table-cell">Cliente</th>
                                 <th class="px-2 py-2 hidden md:table-cell">Línea</th>
                                 <th class="px-2 py-2 hidden md:table-cell text-center">Pzas carga</th>
+                                <th class="px-2 py-2 hidden md:table-cell text-center">Pzas totales proceso</th>
+                                <th class="px-2 py-2 hidden md:table-cell text-center">Decímetros trabajados</th>
                                 <th class="px-2 py-2 hidden md:table-cell text-center">Estatus carga</th>
                                 <th class="px-2 py-2 hidden md:table-cell text-center">T. muerto (hrs)</th>
                             </tr>
@@ -261,6 +278,9 @@
                                     $tarima    = optional($tarimaNp->tarima);
                                     $numberPart = optional($tarimaNp->numberPart);
                                     $charges   = $process->charges;
+                                    $decimeters = $numberPart->decimeters ?? 0;
+                                    $totalProcessPieces = $charges->sum('quantity_pieces');
+                                    $totalDecimetersWorked = $totalProcessPieces * $decimeters;
                                 @endphp
                                 @if($charges->isEmpty())
                                     <tr class="border-t border-gray-200">
@@ -268,10 +288,13 @@
                                         <td class="px-2 py-2 text-center text-gray-400 italic">Sin cargas</td>
                                         <td class="px-2 py-2">#{{ $tarima->serial_number ?? 'N/A' }}</td>
                                         <td class="px-2 py-2">{{ $numberPart->partnumber ?? 'N/A' }}</td>
+                                        <td class="px-2 py-2 hidden md:table-cell">{{ round($decimeters, 4) }}</td>
                                         <td class="px-2 py-2 hidden md:table-cell">{{ $tarimaNp->of ?? 'N/A' }}</td>
                                         <td class="px-2 py-2 hidden md:table-cell">{{ optional($tarima->customer)->name ?? 'N/A' }}</td>
                                         <td class="px-2 py-2 hidden md:table-cell">{{ optional($process->line)->name ?? '' }}</td>
                                         <td class="px-2 py-2 hidden md:table-cell text-center">—</td>
+                                        <td class="px-2 py-2 hidden md:table-cell text-center">0</td>
+                                        <td class="px-2 py-2 hidden md:table-cell text-center">0</td>
                                         <td class="px-2 py-2 hidden md:table-cell text-center">—</td>
                                         <td class="px-2 py-2 hidden md:table-cell text-center">—</td>
                                     </tr>
@@ -294,11 +317,16 @@
                                             @if($ci === 0)
                                                 <td class="px-2 py-2" rowspan="{{ $charges->count() }}">#{{ $tarima->serial_number ?? 'N/A' }}</td>
                                                 <td class="px-2 py-2" rowspan="{{ $charges->count() }}">{{ $numberPart->partnumber ?? 'N/A' }}</td>
+                                                <td class="px-2 py-2 hidden md:table-cell" rowspan="{{ $charges->count() }}">{{ round($decimeters, 4) }}</td>
                                                 <td class="px-2 py-2 hidden md:table-cell" rowspan="{{ $charges->count() }}">{{ $tarimaNp->of ?? 'N/A' }}</td>
                                                 <td class="px-2 py-2 hidden md:table-cell" rowspan="{{ $charges->count() }}">{{ optional($tarima->customer)->name ?? 'N/A' }}</td>
                                                 <td class="px-2 py-2 hidden md:table-cell" rowspan="{{ $charges->count() }}">{{ optional($process->line)->name ?? '' }}</td>
                                             @endif
                                             <td class="px-2 py-2 hidden md:table-cell text-center">{{ round($charge->quantity_pieces, 2) }}</td>
+                                            @if($ci === 0)
+                                                <td class="px-2 py-2 hidden md:table-cell text-center" rowspan="{{ $charges->count() }}">{{ round($totalProcessPieces, 2) }}</td>
+                                                <td class="px-2 py-2 hidden md:table-cell text-center" rowspan="{{ $charges->count() }}">{{ round($totalDecimetersWorked, 4) }}</td>
+                                            @endif
                                             <td class="px-2 py-2 hidden md:table-cell text-center">{{ $statusLabel }}</td>
                                             <td class="px-2 py-2 hidden md:table-cell text-center">{{ number_format($chargeDeadtime, 2) }}</td>
                                         </tr>
@@ -306,7 +334,7 @@
                                 @endif
                             @empty
                                 <tr>
-                                    <td colspan="10" class="px-2 py-4 text-center text-sm text-gray-500">No se encontraron procesos para la fecha y líder seleccionados.</td>
+                                    <td colspan="13" class="px-2 py-4 text-center text-sm text-gray-500">No se encontraron procesos para la fecha y líder seleccionados.</td>
                                 </tr>
                             @endforelse
                         </tbody>
