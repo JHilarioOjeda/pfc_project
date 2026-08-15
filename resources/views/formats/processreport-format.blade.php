@@ -109,7 +109,10 @@
                             <th class="border border-black px-1 py-1 text-center">Cliente</th>
                             <th class="border border-black px-1 py-1 text-center">OF</th>
                             <th class="border border-black px-1 py-1 text-center">No. de parte</th>
+                            {{-- <th class="border border-black px-1 py-1 text-center">Decímetros</th> --}}
                             <th class="border border-black px-1 py-1 text-center">Pzas carga</th>
+                            <th class="border border-black px-1 py-1 text-center">Pzas totales proceso</th>
+                            <th class="border border-black px-1 py-1 text-center">Decímetros trabajados</th>
                             <th class="border border-black px-1 py-1 text-center">Línea</th>
                             <th class="border border-black px-1 py-1 text-center">Operador(es)</th>
                             <th class="border border-black px-1 py-1 text-center">Inicio</th>
@@ -123,7 +126,10 @@
                                 $tarimaNp   = optional($process->tarimaNp);
                                 $tarima     = optional($tarimaNp->tarima);
                                 $numberPart = optional($tarimaNp->numberPart);
+                                $decimeters = $tarimaNp->numberPart->decimeters ?? 0;
                                 $charges    = $process->charges;
+                                $totalProcessPieces = $charges->sum('quantity_pieces');
+                                $totalDecimetersWorked = $totalProcessPieces * $decimeters;
                             @endphp
                             @if($charges->isEmpty())
                                 <tr>
@@ -133,12 +139,15 @@
                                     <td class="border border-black px-1 py-1 text-center">{{ optional($tarima->customer)->name ?? 'N/A' }}</td>
                                     <td class="border border-black px-1 py-1 text-center">{{ $tarimaNp->of ?? 'N/A' }}</td>
                                     <td class="border border-black px-1 py-1 text-center">{{ $numberPart->partnumber ?? 'N/A' }}</td>
+                                    {{-- <td class="border border-black px-1 py-1 text-center">{{ round($decimeters, 4) }}</td> --}}
                                     <td class="border border-black px-1 py-1 text-center">—</td>
+                                    <td class="border border-black px-1 py-1 text-center">0</td>
+                                    <td class="border border-black px-1 py-1 text-center">0</td>
                                     <td class="border border-black px-1 py-1 text-center">{{ optional($process->line)->name }}</td>
                                     <td class="border border-black px-1 py-1 text-center">{{ $process->operator_name }}</td>
                                     <td class="border border-black px-1 py-1 text-center">{{ optional($process->start_date)->format('H:i') }}</td>
                                     <td class="border border-black px-1 py-1 text-center">{{ optional($process->finished_date)->format('H:i') }}</td>
-                                    <td class="border border-black px-1 py-1 text-center">0.00</td>
+                                    <td class="border border-black px-1 py-1 text-center">0</td>
                                 </tr>
                             @else
                                 @foreach($charges as $ci => $charge)
@@ -155,9 +164,12 @@
                                             <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ optional($tarima->customer)->name ?? 'N/A' }}</td>
                                             <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ $tarimaNp->of ?? 'N/A' }}</td>
                                             <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ $numberPart->partnumber ?? 'N/A' }}</td>
+                                            {{-- <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ round($decimeters, 4) }}</td> --}}
                                         @endif
                                         <td class="border border-black px-1 py-1 text-center">{{ round($charge->quantity_pieces, 2) }}</td>
                                         @if($ci === 0)
+                                            <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ round($totalProcessPieces, 2) }}</td>
+                                            <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ round($totalDecimetersWorked, 4) }}</td>
                                             <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ optional($process->line)->name }}</td>
                                             <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ $process->operator_name }}</td>
                                             <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ optional($process->start_date)->format('H:i') }}</td>
@@ -169,7 +181,7 @@
                             @endif
                         @empty
                             <tr>
-                                <td colspan="12" class="border border-black px-2 py-4 text-center text-gray-500">No se encontraron procesos para la fecha y líder seleccionados.</td>
+                                <td colspan="15" class="border border-black px-2 py-4 text-center text-gray-500">No se encontraron procesos para la fecha y líder seleccionados.</td>
                             </tr>
                         @endforelse
                     </tbody>
