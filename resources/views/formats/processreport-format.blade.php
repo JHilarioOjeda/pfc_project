@@ -28,7 +28,7 @@
         @media print {
             @page {
                 size: letter;
-                margin: 1cm;
+                margin: 0;
             }
 
             .no-print {
@@ -41,6 +41,11 @@
 
             .report-page:last-of-type {
                 page-break-after: auto;
+            }
+
+            .report-page table tr {
+                page-break-inside: avoid;
+                break-inside: avoid;
             }
         }
     </style>
@@ -120,7 +125,7 @@
 
     <div class="w-full overflow-x-auto print-area">
         @foreach ($reportPages as $pageIndex => $page)
-            <div class="bg-white rounded-lg mx-auto text-sm overflow-y-hidden flex flex-col mt-4 report-page" style="height: 27.94cm; width: 21.59cm; padding: 1cm;">
+            <div class="bg-white rounded-lg mx-auto text-sm flex flex-col mt-4 report-page" style="min-height: 27.94cm; width: 21.59cm; padding: 1cm;">
                 <!-- ENCABEZADO -->
                 <div class="flex items-start justify-between border-b border-black pb-2">
                     <div class="flex items-center space-x-2 w-2/12">
@@ -178,10 +183,25 @@
                     <!-- PLAN Y REPORTE DE PRODUCCIÓN -->
                     <div class="w-full mt-4">
                         <p class="font-semibold text-sm mb-1">Plan y reporte de producción</p>
-                        <div class="py-2 flex space-x-4">
-                            <p class="text-[11px] mb-1"><span class="font-semibold">Fecha:</span> {{ \Carbon\Carbon::parse($date)->format('d/m/Y') }}</p>
-                            <p class="text-[11px] mb-1"><span class="font-semibold">Líder de proceso:</span> {{ $leader->name }}</p>
-                        </div>
+                        @if($pageIndex === 0)
+                            @php
+                                $firstProcess = $processes->first();
+                            @endphp
+                            <div class="py-2">
+                                <div class="flex space-x-4">
+                                    <p class="text-[11px] mb-1"><span class="font-semibold">Fecha:</span> {{ \Carbon\Carbon::parse($date)->format('d/m/Y') }}</p>
+                                    <p class="text-[11px] mb-1"><span class="font-semibold">Líder de proceso:</span> {{ $leader->name }}</p>
+                                </div>
+                                <div class="flex space-x-4">
+                                    <p class="text-[11px] mb-1"><span class="font-semibold">Línea:</span> {{ optional(optional($firstProcess)->line)->name ?? 'N/A' }}</p>
+                                    <p class="text-[11px] mb-1"><span class="font-semibold">Operador(es):</span> {{ optional($firstProcess)->operator_name ?? 'N/A' }}</p>
+                                </div>
+                                <div class="flex space-x-4">
+                                    <p class="text-[11px] mb-1"><span class="font-semibold">Piezas totales trabajadas:</span> {{ round($totalPieces, 2) }}</p>
+                                    <p class="text-[11px] mb-1"><span class="font-semibold">Decímetros totales trabajados:</span> {{ round($totalDecimeters, 4) }}</p>
+                                </div>
+                            </div>
+                        @endif
                         <table class="w-full border-collapse border border-black text-[10px]">
                             <thead class="bg-gray-100">
                                 <tr>
@@ -194,8 +214,6 @@
                                     <th class="border border-black px-1 py-1 text-center">Pzas carga</th>
                                     <th class="border border-black px-1 py-1 text-center">Pzas totales proceso</th>
                                     <th class="border border-black px-1 py-1 text-center">Decímetros trabajados</th>
-                                    <th class="border border-black px-1 py-1 text-center">Línea</th>
-                                    <th class="border border-black px-1 py-1 text-center">Operador(es)</th>
                                     <th class="border border-black px-1 py-1 text-center">Inicio</th>
                                     <th class="border border-black px-1 py-1 text-center">Fin</th>
                                     <th class="border border-black px-1 py-1 text-center">T. muerto (hrs)</th>
@@ -223,8 +241,6 @@
                                             <td class="border border-black px-1 py-1 text-center">—</td>
                                             <td class="border border-black px-1 py-1 text-center">0</td>
                                             <td class="border border-black px-1 py-1 text-center">0</td>
-                                            <td class="border border-black px-1 py-1 text-center">{{ optional($process->line)->name }}</td>
-                                            <td class="border border-black px-1 py-1 text-center">{{ $process->operator_name }}</td>
                                             <td class="border border-black px-1 py-1 text-center">{{ optional($process->start_date)->format('H:i') }}</td>
                                             <td class="border border-black px-1 py-1 text-center">{{ optional($process->finished_date)->format('H:i') }}</td>
                                             <td class="border border-black px-1 py-1 text-center">0</td>
@@ -249,8 +265,6 @@
                                                 @if($ci === 0)
                                                     <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ round($totalProcessPieces, 2) }}</td>
                                                     <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ round($totalDecimetersWorked, 4) }}</td>
-                                                    <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ optional($process->line)->name }}</td>
-                                                    <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ $process->operator_name }}</td>
                                                     <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ optional($process->start_date)->format('H:i') }}</td>
                                                     <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ optional($process->finished_date)->format('H:i') }}</td>
                                                     <td class="border border-black px-1 py-1 text-center" rowspan="{{ $charges->count() }}">{{ number_format($totalProcessDeadtime, 2) }}</td>
@@ -260,7 +274,7 @@
                                     @endif
                                 @empty
                                     <tr>
-                                        <td colspan="14" class="border border-black px-2 py-4 text-center text-gray-500">No se encontraron procesos para la fecha y líder seleccionados.</td>
+                                        <td colspan="12" class="border border-black px-2 py-4 text-center text-gray-500">No se encontraron procesos para la fecha y líder seleccionados.</td>
                                     </tr>
                                 @endforelse
                             </tbody>

@@ -7,6 +7,7 @@ use App\Models\Tarima;
 use App\Models\MeditionsReport;
 use App\Models\MeditionsreportObservation;
 use App\Models\Proccess;
+use Illuminate\Validation\Rule;
 use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
 
 class Measurereporttarimadetail extends Component
@@ -15,6 +16,7 @@ class Measurereporttarimadetail extends Component
     public $tarima;
     public $reports = [];
     public $selectedReports = [];
+    public $selectAll = false;
     public $folio;
 
     public function mount($id)
@@ -59,6 +61,18 @@ class Measurereporttarimadetail extends Component
         })->toArray();
     }
 
+    public function updatedSelectAll($value): void
+    {
+        $this->selectedReports = $value
+            ? collect($this->reports)->pluck('id')->toArray()
+            : [];
+    }
+
+    public function updatedSelectedReports(): void
+    {
+        $this->selectAll = count($this->selectedReports) === count($this->reports) && count($this->reports) > 0;
+    }
+
     public function printSelected()
     {
         if (empty($this->selectedReports)) {
@@ -69,8 +83,15 @@ class Measurereporttarimadetail extends Component
         }
 
         $this->validate([
-            'folio' => 'required|string|max:255',
-        ], [], [
+            'folio' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('meditions_report', 'folio')->whereNotIn('id', $this->selectedReports),
+            ],
+        ], [
+            'folio.unique' => 'Ese folio ya fue utilizado en otro reporte. Ingresa uno diferente.',
+        ], [
             'folio' => 'Folio',
         ]);
 

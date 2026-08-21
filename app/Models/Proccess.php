@@ -60,4 +60,9 @@ class Proccess extends Model
     {
         return $this->belongsTo(WorkLine::class, 'id_line');
     }
+
+    public function meditionsReports(): HasMany
+    {
+        return $this->hasMany(MeditionsReport::class, 'id_proccess');
+    }
 }

@@ -28,7 +28,7 @@
         @media print {
             @page {
                 size: letter;
-                margin: 1cm;
+                margin: 0;
             }
 
             .no-print {
@@ -37,6 +37,15 @@
 
             .report-page {
                 page-break-after: always;
+            }
+
+            .report-page:last-of-type {
+                page-break-after: auto;
+            }
+
+            .report-page table tr {
+                page-break-inside: avoid;
+                break-inside: avoid;
             }
         }
     </style>
@@ -48,148 +57,231 @@
         $tarimaReport = optional($tarimaNp)->tarima ?? $tarima;
         $customer = optional($tarimaReport)->customer;
         $numberPart = optional($tarimaNp)->numberPart;
+
+        // ===== PAGINACIÓN DEL REPORTE =====
+        // Igual que en processreport-format.blade.php: cada "página" es un bloque de
+        // altura fija (carta, 27.94cm). Si la tabla de mediciones no cabe completa en
+        // una sola hoja, se reparte en varias páginas de solo tabla y se agrega una
+        // página final exclusiva para la nota de caducidad y la firma.
+        //
+        // Los valores de capacidad son aproximados (filas que caben en el alto
+        // disponible de una hoja carta) y pueden ajustarse si cambia el tamaño de
+        // fuente o el padding de las celdas.
+        $maxRowsSinglePage   = 18; // filas que caben junto con datos generales + nota + firma en una sola página
+        $maxRowsPerTablePage = 26; // filas que caben en una página dedicada solo a la tabla
+        $generalReserve      = 8;  // filas de tabla "equivalentes" que ocupan encabezado/fecha/folio/datos generales en la primera página
+
+        $totalRows = $reports->sum(fn ($r) => max(1, $r->observations->count()));
+
+        $reportPages = collect();
+
+        if ($reports->isEmpty() || $totalRows <= $maxRowsSinglePage) {
+            $reportPages->push([
+                'reports'     => $reports,
+                'showGeneral' => true,
+                'showTable'   => true,
+                'showClosing' => true,
+            ]);
+        } else {
+            $chunk       = collect();
+            $chunkRows   = 0;
+            $isFirstPage = true;
+            $capacity    = max(5, $maxRowsPerTablePage - $generalReserve);
+
+            foreach ($reports as $report) {
+                $rowCount = max(1, $report->observations->count());
+
+                if ($chunkRows > 0 && ($chunkRows + $rowCount) > $capacity) {
+                    $reportPages->push([
+                        'reports'     => $chunk,
+                        'showGeneral' => $isFirstPage,
+                        'showTable'   => true,
+                        'showClosing' => false,
+                    ]);
+                    $chunk       = collect();
+                    $chunkRows   = 0;
+                    $isFirstPage = false;
+                    $capacity    = $maxRowsPerTablePage;
+                }
+
+                $chunk->push($report);
+                $chunkRows += $rowCount;
+            }
+
+            if ($chunk->isNotEmpty()) {
+                $reportPages->push([
+                    'reports'     => $chunk,
+                    'showGeneral' => $isFirstPage,
+                    'showTable'   => true,
+                    'showClosing' => false,
+                ]);
+            }
+
+            // Página final exclusiva para la nota de caducidad y la firma.
+            $reportPages->push([
+                'reports'     => collect(),
+                'showGeneral' => false,
+                'showTable'   => false,
+                'showClosing' => true,
+            ]);
+        }
+
+        $totalReportPages = $reportPages->count();
     @endphp
 
-    <div class="w-full overflow-x-auto">
-        <div class="bg-white rounded-lg mx-auto text-sm overflow-y-hidden flex flex-col mt-4 print-area report-page" style="height: 27.94cm; width: 21.59cm; padding: 1cm;">
-            <!-- ENCABEZADO -->
-            <div class="flex items-start justify-between border-b border-black pb-2">
-                <div class="flex items-center space-x-2 w-2/12">
-                    <img src="/imgs/logos/principallogo.jpg" class="w-full" alt="Logo">
+    <div class="w-full overflow-x-auto print-area">
+        @foreach ($reportPages as $pageIndex => $page)
+            <div class="bg-white rounded-lg mx-auto text-sm flex flex-col mt-4 report-page" style="min-height: 27.94cm; width: 21.59cm; padding: 1cm;">
+                <!-- ENCABEZADO -->
+                <div class="flex items-start justify-between border-b border-black pb-2">
+                    <div class="flex items-center space-x-2 w-2/12">
+                        <img src="/imgs/logos/principallogo.jpg" class="w-full" alt="Logo">
+                    </div>
+
+                    <div class="flex-1 text-center w-8/12 leading-tight">
+                        <p class="font-bold text-base tracking-wide">RECUBRIMIENTOS INDUSTRIALES PFC S.A. DE C.V.</p>
+                        <p class="font-semibold text-sm tracking-wide mt-1">REPORTE DE MEDICIONES</p>
+                    </div>
+
+                    <div class="text-[10px] border border-black px-2 py-1 leading-tight w-2/12">
+                        <p><span class="font-semibold">Punto normativo:</span> 9.1.3 Análisis y Evaluación.</p>
+                        <p><span class="font-semibold">Código:</span> FO-CA-CA-24</p>
+                        <p><span class="font-semibold">Revisión:</span> 01</p>
+                        @if($totalReportPages > 1)
+                            <p><span class="font-semibold">Página:</span> {{ $pageIndex + 1 }} de {{ $totalReportPages }}</p>
+                        @endif
+                    </div>
                 </div>
 
-                <div class="flex-1 text-center w-8/12 leading-tight">
-                    <p class="font-bold text-base tracking-wide">RECUBRIMIENTOS INDUSTRIALES PFC S.A. DE C.V.</p>
-                    <p class="font-semibold text-sm tracking-wide mt-1">REPORTE DE MEDICIONES</p>
-                </div>
-
-                <div class="text-[10px] border border-black px-2 py-1 leading-tight w-2/12">
-                    <p><span class="font-semibold">Punto normativo:</span> 9.1.3 Análisis y Evaluación.</p>
-                    <p><span class="font-semibold">Código:</span> FO-CA-CA-24</p>
-                    <p><span class="font-semibold">Revisión:</span> 01</p>
-                </div>
-            </div>
-
-            <!-- FECHA / FOLIO -->
-            <div class="flex justify-end mt-2">
-                <table class="text-[10px] border border-black border-collapse">
-                    <tr>
-                        <td class="border border-black px-2 py-1 font-semibold">FECHA</td>
-                        <td class="border border-black px-2 py-1 text-center">{{ optional(optional($firstReport)->register_date)->format('d/m/Y') }}</td>
-                    </tr>
-                    <tr>
-                        <td class="border border-black px-2 py-1 font-semibold">FOLIO</td>
-                        <td class="border border-black px-2 py-1 text-center">{{ optional($firstReport)->folio }}</td>
-                    </tr>
-                </table>
-            </div>
-
-            <!-- DATOS GENERALES -->
-            <div class="w-full mt-4">
-                <table class="w-full border-collapse border border-black text-[11px]">
-                    <tr>
-                        <td class="border border-black px-2 py-1 font-semibold w-2/12">Cliente / Razón social</td>
-                        <td class="border border-black px-2 py-1" colspan="3">{{ optional($customer)->name }}</td>
-                    </tr>
-                    <tr>
-                        <td class="border border-black px-2 py-1 font-semibold">Unidades de medición</td>
-                        <td class="border border-black px-2 py-1">Micras</td>
-                        <td class="border border-black px-2 py-1 font-semibold">Cantidad total</td>
-                        <td class="border border-black px-2 py-1">{{ $reports->count() }}</td>
-                    </tr>
-                    <tr>
-                        <td class="border border-black px-2 py-1 font-semibold">Método</td>
-                        <td class="border border-black px-2 py-1">{{ optional($firstReport)->method }}</td>
-                        <td class="border border-black px-2 py-1 font-semibold">Requisito</td>
-                        <td class="border border-black px-2 py-1">{{ optional($firstReport)->requirement }}</td>
-                    </tr>
-                </table>
-            </div>
-
-            <!-- OBSERVACIONES / CONDICIONES DEL MATERIAL -->
-            <div class="w-full mt-4">
-                <p class="font-semibold text-sm">Observaciones / Condiciones del material</p>
-                <p class="text-[11px] mb-1">TIPO DE PROCESO: {{ optional($numberPart)->process }}</p>
-                <table class="w-full border-collapse border border-black text-[11px]">
-                    <thead>
-                        <tr class="bg-gray-100">
-                            <th class="border border-black px-2 py-1 text-center align-middle">CÓDIGO</th>
-                            <th class="border border-black px-2 py-1 text-center align-middle"># ORDEN</th>
-                            <th class="border border-black px-2 py-1 text-center align-middle">NUM</th>
-                            <th class="border border-black px-2 py-1 text-center align-middle">CANTIDAD</th>
-                            <th class="border border-black px-2 py-1 text-center align-middle">MEDICIONES</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @php $hasObservations = false; @endphp
-                        @foreach ($reports as $report)
-                            @php
-                                $processRow = $report->proccess;
-                                $tarimaNpRow = optional($processRow)->tarimaNp;
-                                $numberPartRow = optional($tarimaNpRow)->numberPart;
-
-                                $medCount = $report->observations->count();
-
-                                if ($medCount > 0) {
-                                    $hasObservations = true;
-                                }
-                            @endphp
-
+                @if($page['showGeneral'])
+                    <!-- FECHA / FOLIO -->
+                    <div class="flex justify-end mt-2">
+                        <table class="text-[10px] border border-black border-collapse">
                             <tr>
-                                <td class="border border-black px-2 py-1 text-center align-top">{{ optional($numberPartRow)->partnumber }}</td>
-                                <td class="border border-black px-2 py-1 text-center align-top">{{ optional($tarimaNpRow)->oc }}</td>
-                                <td class="border border-black px-2 py-1 text-center align-top">{{ optional($tarimaNpRow)->of }}</td>
-                                <td class="border border-black px-2 py-1 text-center align-top">{{ optional($tarimaNpRow)->quantity }}</td>
-                                <td class="border border-black px-0 py-0">
-                                    <table class="w-full text-[10px] border-collapse">
-                                        <thead>
-                                            <tr class="bg-gray-100">
-                                                <th class="px-1 py-0.5 text-center">No. medición</th>
-                                                <th class="px-1 py-0.5 text-center">Espesor</th>
-                                                <th class="px-1 py-0.5 text-center">Apariencia</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @forelse ($report->observations as $index => $observation)
-                                                <tr>
-                                                    <td class="px-1 py-0.5 text-center">{{ $index + 1 }}</td>
-                                                    <td class="px-1 py-0.5 text-center">{{ round($observation->thickness_in_microns, 2) }}</td>
-                                                    <td class="px-1 py-0.5 text-center">{{ $observation->visual_appearance }}</td>
-                                                </tr>
-                                            @empty
-                                                <tr>
-                                                    <td colspan="3" class="border border-black px-1 py-1 text-center text-gray-500">Sin mediciones</td>
-                                                </tr>
-                                            @endforelse
-                                        </tbody>
-                                    </table>
-                                </td>
+                                <td class="border border-black px-2 py-1 font-semibold">FECHA</td>
+                                <td class="border border-black px-2 py-1 text-center">{{ optional(optional($firstReport)->register_date)->format('d/m/Y') }}</td>
                             </tr>
-                        @endforeach
-
-                        @unless($hasObservations)
                             <tr>
-                                <td colspan="7" class="border border-black px-2 py-4 text-center text-gray-500">Sin mediciones registradas</td>
+                                <td class="border border-black px-2 py-1 font-semibold">FOLIO</td>
+                                <td class="border border-black px-2 py-1 text-center">{{ optional($firstReport)->folio }}</td>
                             </tr>
-                        @endunless
-                    </tbody>
-                </table>
-            </div>
+                        </table>
+                    </div>
 
-            <!-- NOTA Y CADUCIDAD -->
-            <div class="w-full mt-3 text-[10px]">
-                <p class="font-semibold">NOTA</p>
-                <p>*Se recomienda mantener el material en un lugar seco libre de humedad o líquidos (agua, soluciones, aceites, etc.) o solventes que emanen vapores.</p>
-                <p class="mt-1">Caducidad: 30 días a partir de la fecha de su tratamiento.</p>
-            </div>
+                    <!-- DATOS GENERALES -->
+                    <div class="w-full mt-4">
+                        <table class="w-full border-collapse border border-black text-[11px]">
+                            <tr>
+                                <td class="border border-black px-2 py-1 font-semibold w-2/12">Cliente / Razón social</td>
+                                <td class="border border-black px-2 py-1" colspan="3">{{ optional($customer)->name }}</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-black px-2 py-1 font-semibold">Unidades de medición</td>
+                                <td class="border border-black px-2 py-1">Micras</td>
+                                <td class="border border-black px-2 py-1 font-semibold">Cantidad total</td>
+                                <td class="border border-black px-2 py-1">{{ $reports->count() }}</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-black px-2 py-1 font-semibold">Método</td>
+                                <td class="border border-black px-2 py-1">{{ optional($firstReport)->method }}</td>
+                                <td class="border border-black px-2 py-1 font-semibold">Requisito</td>
+                                <td class="border border-black px-2 py-1">{{ optional($firstReport)->requirement }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                @endif
 
-            <!-- FIRMA -->
-            <div class="w-full mt-10 flex flex-col items-center justify-end flex-1">
-                <div class="w-1/2 border-t border-black mt-8 pt-1 text-center text-[11px]">
-                    Nombre y firma del responsable de calidad
-                </div>
+                @if($page['showTable'])
+                    <!-- OBSERVACIONES / CONDICIONES DEL MATERIAL -->
+                    <div class="w-full mt-4">
+                        <p class="font-semibold text-sm">Observaciones / Condiciones del material</p>
+                        <p class="text-[11px] mb-1">TIPO DE PROCESO: {{ optional($numberPart)->process }}</p>
+                        <table class="w-full border-collapse border border-black text-[11px]">
+                            <thead>
+                                <tr class="bg-gray-100">
+                                    <th class="border border-black px-2 py-1 text-center align-middle">CÓDIGO</th>
+                                    <th class="border border-black px-2 py-1 text-center align-middle"># ORDEN</th>
+                                    <th class="border border-black px-2 py-1 text-center align-middle">NUM</th>
+                                    <th class="border border-black px-2 py-1 text-center align-middle">CANTIDAD</th>
+                                    <th class="border border-black px-2 py-1 text-center align-middle">MEDICIONES</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @php $hasObservations = false; @endphp
+                                @foreach ($page['reports'] as $report)
+                                    @php
+                                        $processRow = $report->proccess;
+                                        $tarimaNpRow = optional($processRow)->tarimaNp;
+                                        $numberPartRow = optional($tarimaNpRow)->numberPart;
+
+                                        $medCount = $report->observations->count();
+
+                                        if ($medCount > 0) {
+                                            $hasObservations = true;
+                                        }
+                                    @endphp
+
+                                    <tr>
+                                        <td class="border border-black px-2 py-1 text-center align-top">{{ optional($numberPartRow)->partnumber }}</td>
+                                        <td class="border border-black px-2 py-1 text-center align-top">{{ optional($tarimaNpRow)->oc }}</td>
+                                        <td class="border border-black px-2 py-1 text-center align-top">{{ optional($tarimaNpRow)->of }}</td>
+                                        <td class="border border-black px-2 py-1 text-center align-top">{{ optional($tarimaNpRow)->quantity }}</td>
+                                        <td class="border border-black px-0 py-0">
+                                            <table class="w-full text-[10px] border-collapse">
+                                                <thead>
+                                                    <tr class="bg-gray-100">
+                                                        <th class="px-1 py-0.5 text-center">No. medición</th>
+                                                        <th class="px-1 py-0.5 text-center">Espesor</th>
+                                                        <th class="px-1 py-0.5 text-center">Apariencia</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @forelse ($report->observations as $index => $observation)
+                                                        <tr>
+                                                            <td class="px-1 py-0.5 text-center">{{ $index + 1 }}</td>
+                                                            <td class="px-1 py-0.5 text-center">{{ round($observation->thickness_in_microns, 2) }}</td>
+                                                            <td class="px-1 py-0.5 text-center">{{ $observation->visual_appearance }}</td>
+                                                        </tr>
+                                                    @empty
+                                                        <tr>
+                                                            <td colspan="3" class="border border-black px-1 py-1 text-center text-gray-500">Sin mediciones</td>
+                                                        </tr>
+                                                    @endforelse
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                @endforeach
+
+                                @unless($hasObservations)
+                                    <tr>
+                                        <td colspan="7" class="border border-black px-2 py-4 text-center text-gray-500">Sin mediciones registradas</td>
+                                    </tr>
+                                @endunless
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+
+                @if($page['showClosing'])
+                    <!-- NOTA Y CADUCIDAD -->
+                    <div class="w-full mt-3 text-[10px]">
+                        <p class="font-semibold">NOTA</p>
+                        <p>*Se recomienda mantener el material en un lugar seco libre de humedad o líquidos (agua, soluciones, aceites, etc.) o solventes que emanen vapores.</p>
+                        <p class="mt-1">Caducidad: 30 días a partir de la fecha de su tratamiento.</p>
+                    </div>
+
+                    <!-- FIRMA -->
+                    <div class="w-full mt-10 flex flex-col items-center justify-end flex-1">
+                        <img src="{{ asset('imgs/signs/firma_transparente_negro.png') }}" alt="Firma" class="h-16 object-contain">
+                        <div class="w-1/2 border-t border-black mt-1 pt-1 text-center text-[11px]">
+                            <p class="font-semibold">Erika Martínez</p>
+                            <p>Nombre y firma del responsable de calidad</p>
+                        </div>
+                    </div>
+                @endif
             </div>
-        </div>
+        @endforeach
     </div>
 </x-app-layout>
     <script>
@@ -207,7 +299,8 @@
                 filename:     filename,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2 },
-                jsPDF:        { unit: 'mm', format: 'letter', orientation: 'portrait' }
+                jsPDF:        { unit: 'mm', format: 'letter', orientation: 'portrait' },
+                pagebreak:    { mode: ['css', 'legacy'] }
             };
 
             try {
