@@ -90,7 +90,9 @@
                         <p class="text-sm"><span class="font-semibold">Fecha:</span> {{ \Carbon\Carbon::parse($date)->format('d/m/Y') }}</p>
                         <p class="text-sm"><span class="font-semibold">Líderes con procesos:</span> {{ count($processesGrouped) }}</p>
                         <p class="text-sm"><span class="font-semibold">Total de procesos:</span> {{ $processCountAll }}</p>
-                        <p class="text-sm"><span class="font-semibold">Tiempo muerto total:</span> {{ number_format($totalDeadtimeAll, 2) }} hrs</p>
+                        <p class="text-sm"><span class="font-semibold">Tiempo muerto total:</span> {{ round($totalDeadtimeAll, 2) }} hrs</p>
+                        <p class="text-sm"><span class="font-semibold">Piezas totales trabajadas:</span> {{ round($totalPiecesAll, 2) }}</p>
+                        <p class="text-sm"><span class="font-semibold">Decímetros totales trabajados:</span> {{ round($totalDecimetersAll, 4) }}</p>
                     </div>
                     @if(count($processesGrouped) > 0)
                         <div class="border rounded-lg p-3 bg-gray-50">
@@ -217,7 +219,9 @@
                     @endphp
                     <p class="text-sm"><span class="font-semibold">Líder:</span> {{ $leaderName }}</p>
                     <p class="text-sm"><span class="font-semibold">Procesos encontrados:</span> {{ collect($processes)->count() }}</p>
-                    <p class="text-sm"><span class="font-semibold">Tiempo muerto total:</span> {{ number_format($totalDeadtime, 2) }} hrs</p>
+                    <p class="text-sm"><span class="font-semibold">Tiempo muerto total:</span> {{ round($totalDeadtime, 2) }} hrs</p>
+                    <p class="text-sm"><span class="font-semibold">Piezas totales trabajadas:</span> {{ round($totalPieces, 2) }}</p>
+                    <p class="text-sm"><span class="font-semibold">Decímetros totales trabajados:</span> {{ round($totalDecimeters, 4) }}</p>
                 </div>
 
                 <div class="border rounded-lg p-3 bg-gray-50 lg:col-span-2">

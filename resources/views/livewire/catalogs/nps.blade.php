@@ -7,14 +7,22 @@
 
         <div class="pb-4 w-full flex">
             <x-search-input class="lg:w-1/3 w-3/4" wireModel="search" placeholder="Buscar..." />
-            <x-button-primary class="my-auto ml-auto whitespace-nowrap mr-2 !bg-[#217346] hover:!bg-[#1a5c38] focus:!ring-[#217346]" wire:click="scmodalImportNps">
+            <x-button-primary class="my-auto ml-auto whitespace-nowrap mr-2 !bg-[#217346] hover:!bg-[#1a5c38] focus:!ring-[#217346]" wire:click="exportActiveNps" wire:loading.attr="disabled" wire:target="exportActiveNps" title="Descargar un archivo con todos los NPs activos">
+                <svg class="size-5 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 16a1 1 0 0 1-1-1V5.414L8.707 7.707a1 1 0 0 1-1.414-1.414l4-4a1 1 0 0 1 1.414 0l4 4a1 1 0 1 1-1.414 1.414L13 5.414V15a1 1 0 0 1-1 1Z"/>
+                    <path d="M4 14a1 1 0 0 1 1 1v3h14v-3a1 1 0 1 1 2 0v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1Z"/>
+                </svg>
+                <span wire:loading.remove wire:target="exportActiveNps">Reporte NPs</span>
+                <span wire:loading wire:target="exportActiveNps">Generando...</span>
+            </x-button-primary>
+            <x-button-primary class="my-auto whitespace-nowrap mr-2 !bg-[#217346] hover:!bg-[#1a5c38] focus:!ring-[#217346]" wire:click="scmodalImportNps" title="Importar varios NPs a la vez desde un archivo CSV, TXT o XLSX">
                 <svg class="size-5 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 2a1 1 0 0 1 1 1v9.586l2.293-2.293a1 1 0 1 1 1.414 1.414l-4 4a1 1 0 0 1-1.414 0l-4-4a1 1 0 1 1 1.414-1.414L11 12.586V3a1 1 0 0 1 1-1Z"/>
                     <path d="M4 15a1 1 0 0 1 1 1v3h14v-3a1 1 0 1 1 2 0v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1Z"/>
                 </svg>
                 Carga Masiva
             </x-button-primary>
-            <x-button-primary class="my-auto whitespace-nowrap" wire:click="scmodalnps(0)">
+            <x-button-primary class="my-auto whitespace-nowrap" wire:click="scmodalnps(0)" title="Registrar un nuevo NP">
                 <svg class="size-6 mr-2 font-semibold" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="-10 -200 970 960">
                     <path fill="currentColor" d="M440 328h-240v-80h240v-240h80v240h240v80h-240v240h-80v-240z"></path>
                  </svg>
@@ -89,10 +97,10 @@
                                 </td>
                                 <td class="px-4 py-2 text-center">
                                     @if($np->active)
-                                        <x-buttonedit wire:click="scmodalnps({{ $np->id }})">Editar</x-buttonedit>
-                                        <x-buttondesact onclick="changenpstatus('{{ $np->id }}', 'desactivate')" class="mr-2 mt-2">Desactivar</x-buttondesact>
+                                        <x-buttonedit wire:click="scmodalnps({{ $np->id }})" title="Editar los datos de este NP">Editar</x-buttonedit>
+                                        <x-buttondesact onclick="changenpstatus('{{ $np->id }}', 'desactivate')" class="mr-2 mt-2" title="Desactivar este NP para que no se pueda usar en nuevos procesos">Desactivar</x-buttondesact>
                                     @else
-                                        <x-buttonact onclick="changenpstatus('{{ $np->id }}', 'activate')" class="mr-2 mt-2">Activar</x-buttonact>
+                                        <x-buttonact onclick="changenpstatus('{{ $np->id }}', 'activate')" class="mr-2 mt-2" title="Activar este NP para volver a usarlo">Activar</x-buttonact>
                                     @endif
                                 </td>
                             </tr>
@@ -119,7 +127,7 @@
                     <p class="text-2xl w-fit my-auto font-semibold text-primarycolor">
                         @if($npselected == null) Crear NP @else Editar NP @endif
                     </p>
-                    <button wire:click="scmodalnps(0)" class="closebttn">
+                    <button wire:click="scmodalnps(0)" class="closebttn" title="Cerrar sin guardar cambios">
                         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
@@ -212,7 +220,7 @@
                                     <span class="text-red-500 text-xs italic">@error('newPrice') {{ $message }} @enderror</span>
                                 </div>
                                 <div class="w-1/3 mt-auto">
-                                    <x-secondary-button wire:click="addPrice" class="w-fit !text-xs">
+                                    <x-secondary-button wire:click="addPrice" class="w-fit !text-xs" title="Agregar este precio al historial del NP">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 mr-1">
                                             <path fill-rule="evenodd" d="M12 3.75a.75.75 0 0 1 .75.75v6.75h6.75a.75.75 0 0 1 0 1.5h-6.75v6.75a.75.75 0 0 1-1.5 0v-6.75H4.5a.75.75 0 0 1 0-1.5h6.75V4.5a.75.75 0 0 1 .75-.75Z" clip-rule="evenodd" />
                                         </svg>
@@ -237,7 +245,7 @@
                                             <td class="px-3 py-2 font-semibold text-primarycolor">${{ number_format($price['price'], 2) }}</td>
                                             <td class="px-3 py-2">{{ \Carbon\Carbon::parse($price['price_date'])->format('d/m/Y') }}</td>
                                             <td class="px-3 py-2 text-center">
-                                                <x-buttondelete onclick="deletePrice({{ $price['id'] }})">
+                                                <x-buttondelete onclick="deletePrice({{ $price['id'] }})" title="Eliminar este precio del historial">
                                                     Eliminar
                                                 </x-buttondelete>
 
@@ -254,7 +262,7 @@
                         @endif
                     </div>
 
-                    <x-button-primary wire:click="createUpdateNp" class="w-fit ml-auto mt-6">
+                    <x-button-primary wire:click="createUpdateNp" class="w-fit ml-auto mt-6" :title="$npselected == null ? 'Guardar este NP como nuevo registro' : 'Guardar los cambios de este NP'">
                         @if($npselected == null) Crear @else Actualizar @endif
                     </x-button-primary>
                 </div>
@@ -269,7 +277,7 @@
             <div class="flex flex-col w-11/12 lg:w-2/3 mx-auto rounded-lg overflow-y-auto bg-white px-6 py-3" style="max-height: 90%;">
                 <div class="flex flex-row justify-between rounded-tl-lg rounded-tr-lg">
                     <p class="text-2xl w-fit my-auto font-semibold text-primarycolor">Importar NPs</p>
-                    <button wire:click="scmodalImportNps" class="closebttn">
+                    <button wire:click="scmodalImportNps" class="closebttn" title="Cerrar sin importar">
                         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
@@ -279,7 +287,7 @@
                 <div class="mt-4 space-y-4">
                     <div class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
                         <p class="text-[11px] text-gray-600">Paso opcional: si necesitas guía de columnas, descarga la plantilla.</p>
-                        <a href="{{ asset('nps_estructura.csv') }}" download="nps_estructura.csv" class="inline-flex items-center mt-1 text-[11px] text-gray-700 hover:text-gray-900 underline underline-offset-2">
+                        <a href="{{ asset('nps_estructura.csv') }}" download="nps_estructura.csv" class="inline-flex items-center mt-1 text-[11px] text-gray-700 hover:text-gray-900 underline underline-offset-2" title="Descargar un archivo CSV de ejemplo con las columnas esperadas">
                             <svg class="size-3 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M12 3a1 1 0 0 1 1 1v9.586l2.293-2.293a1 1 0 1 1 1.414 1.414l-4 4a1 1 0 0 1-1.414 0l-4-4a1 1 0 1 1 1.414-1.414L11 13.586V4a1 1 0 0 1 1-1Z"/>
                                 <path d="M4 15a1 1 0 0 1 1 1v3h14v-3a1 1 0 1 1 2 0v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1Z"/>
@@ -320,10 +328,10 @@
 
                         <p class="text-sm font-semibold text-gray-800 mt-4">2) Analiza y luego importa</p>
                         <div class="mt-2 flex flex-wrap gap-2">
-                            <x-secondary-button wire:click="analyzeImportFile" wire:loading.attr="disabled" wire:target="analyzeImportFile,processImport">
+                            <x-secondary-button wire:click="analyzeImportFile" wire:loading.attr="disabled" wire:target="analyzeImportFile,processImport" title="Revisar el archivo y mostrar una vista previa de los NPs a crear o actualizar">
                                 Analizar Archivo
                             </x-secondary-button>
-                            <x-button-primary wire:click="processImport" wire:loading.attr="disabled" wire:target="analyzeImportFile,processImport" :disabled="!$importIsAnalyzed">
+                            <x-button-primary wire:click="processImport" wire:loading.attr="disabled" wire:target="analyzeImportFile,processImport" :disabled="!$importIsAnalyzed" title="Guardar en el sistema los NPs analizados">
                                 Importar Registros
                             </x-button-primary>
                         </div>

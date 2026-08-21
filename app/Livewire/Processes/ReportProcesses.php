@@ -19,6 +19,8 @@ class ReportProcesses extends Component
     public $availableDates = [];
     public $deadtimeByType = [];
     public $totalDeadtime = 0.0;
+    public $totalPieces = 0.0;
+    public $totalDecimeters = 0.0;
 
     public function mount(): void
     {
@@ -46,6 +48,8 @@ class ReportProcesses extends Component
         $this->checklist = null;
         $this->deadtimeByType = [];
         $this->totalDeadtime = 0.0;
+        $this->totalPieces = 0.0;
+        $this->totalDecimeters = 0.0;
 
         $this->loadAvailableDates();
 
@@ -71,7 +75,13 @@ class ReportProcesses extends Component
             ->get();
 
         foreach ($this->processes as $process) {
+            $decimeters = $process->tarimaNp->numberPart->decimeters ?? 0;
+
             foreach ($process->charges as $charge) {
+                $pieces = (float) $charge->quantity_pieces;
+                $this->totalPieces += $pieces;
+                $this->totalDecimeters += $pieces * $decimeters;
+
                 foreach ($charge->timeouts as $timeout) {
                     $label = (string) $timeout->type;
                     $hours = (float) $timeout->hours;
@@ -125,6 +135,8 @@ class ReportProcesses extends Component
         $processesGrouped = [];
         $totalDeadtimeAll = 0.0;
         $processCountAll  = 0;
+        $totalPiecesAll = 0.0;
+        $totalDecimetersAll = 0.0;
 
         if ((string) $this->leader_id === 'all' && $this->date) {
             $leaderIds = collect($this->leaders)->pluck('id');
@@ -150,25 +162,35 @@ class ReportProcesses extends Component
                     continue;
                 }
                 $ldt = 0.0;
+                $lpieces = 0.0;
+                $ldecimeters = 0.0;
                 foreach ($lps as $p) {
+                    $decimeters = $p->tarimaNp->numberPart->decimeters ?? 0;
                     foreach ($p->charges as $c) {
+                        $pieces = (float) $c->quantity_pieces;
+                        $lpieces += $pieces;
+                        $ldecimeters += $pieces * $decimeters;
                         foreach ($c->timeouts as $t) {
                             $ldt += (float) $t->hours;
                         }
                     }
                 }
                 $totalDeadtimeAll += $ldt;
+                $totalPiecesAll += $lpieces;
+                $totalDecimetersAll += $ldecimeters;
                 $processesGrouped[] = [
                     'leader_name' => $leader->name,
                     'processes'   => $lps,
                     'checklist'   => $checklists->get($leader->id),
                     'deadtime'    => $ldt,
+                    'pieces'      => $lpieces,
+                    'decimeters'  => $ldecimeters,
                 ];
             }
         }
 
         return view('livewire.processes.report-processes', compact(
-            'processesGrouped', 'totalDeadtimeAll', 'processCountAll'
+            'processesGrouped', 'totalDeadtimeAll', 'processCountAll', 'totalPiecesAll', 'totalDecimetersAll'
         ));
     }
 }
