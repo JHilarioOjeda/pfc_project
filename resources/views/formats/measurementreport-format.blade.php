@@ -126,8 +126,10 @@
 
             <!-- FIRMA -->
             <div class="w-full mt-10 flex flex-col items-center justify-end flex-1">
-                <div class="w-1/2 border-t border-black mt-8 pt-1 text-center text-[11px]">
-                    Nombre y firma del responsable de calidad
+                <img src="{{ asset('imgs/signs/firma_transparente_negro.png') }}" alt="Firma" class="h-16 object-contain">
+                <div class="w-1/2 border-t border-black mt-1 pt-1 text-center text-[11px]">
+                    <p class="font-semibold">Erika Martínez</p>
+                    <p>Nombre y firma del responsable de calidad</p>
                 </div>
             </div>
         </div>

@@ -65,7 +65,7 @@ class PFController extends Controller
             ->first();
 
         $processes = Proccess::query()
-            ->with(['tarimaNp.tarima.customer', 'tarimaNp.numberPart', 'whomade', 'timeouts', 'line'])
+            ->with(['tarimaNp.tarima.customer', 'tarimaNp.numberPart', 'whomade', 'timeouts', 'line', 'charges'])
             ->where('who_made', $leaderId)
             ->whereDate('start_date', $date)
             ->orderBy('id')
@@ -73,7 +73,14 @@ class PFController extends Controller
 
         $deadtimeByType = [];
         $totalDeadtime = 0.0;
+        $totalPieces = 0.0;
+        $totalDecimeters = 0.0;
         foreach ($processes as $process) {
+            $decimeters = $process->tarimaNp->numberPart->decimeters ?? 0;
+            $pieces = (float) $process->charges->sum('quantity_pieces');
+            $totalPieces += $pieces;
+            $totalDecimeters += $pieces * $decimeters;
+
             foreach ($process->timeouts as $timeout) {
                 $label = (string) $timeout->type;
                 $hours = (float) $timeout->hours;
@@ -93,7 +100,9 @@ class PFController extends Controller
             'checklist',
             'processes',
             'deadtimeByType',
-            'totalDeadtime'
+            'totalDeadtime',
+            'totalPieces',
+            'totalDecimeters'
         ));
     }
 

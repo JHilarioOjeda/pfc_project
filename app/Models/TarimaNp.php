@@ -31,4 +31,8 @@ class TarimaNp extends Model
     public function numberPart(){
         return $this->belongsTo(NumberPart::class, 'id_np');
     }
+
+    public function proccesses(){
+        return $this->hasMany(Proccess::class, 'id_tarima_np');
+    }
 }

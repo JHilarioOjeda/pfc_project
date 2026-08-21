@@ -79,6 +79,10 @@ Route::middleware(['auth:sanctum',config('jetstream.auth_session'),'verified','u
         Route::get('/reportprocesses/print/{date}/{leader}', [PFController::class, 'processReportPrint'])
             ->name('reportprocesses.print');
 
+        Route::get('/reportentries', function () {
+            return view('processes.reportentries');
+        })->name('reportentries');
+
         // Almacenamiento de PDFs generados en el navegador
         Route::post('/pdf/store', [PFController::class, 'storePdf'])
             ->name('pdf.store');

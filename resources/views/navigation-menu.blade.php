@@ -64,7 +64,7 @@
                     Estadisticas
                 </a>
             @endif} --}}
-            @if(in_array(Auth::user()->user_type, ['1', '3', '5', '6']))
+            @if(in_array(Auth::user()->user_type, ['1', '2', '3', '5', '6']))
                 <div class="relative">
                     <x-dropdown align="right" class="w-fit">
                         <x-slot name="trigger">
@@ -95,6 +95,11 @@
                             @if(in_array(Auth::user()->user_type, ['3', '6']))
                                 <x-dropdown-link href="/reportprocesses">
                                     Reportes de procesos
+                                </x-dropdown-link>
+                            @endif
+                            @if(in_array(Auth::user()->user_type, ['1', '2']))
+                                <x-dropdown-link href="/reportentries">
+                                    Control de entradas y salidas
                                 </x-dropdown-link>
                             @endif
                         </x-slot>

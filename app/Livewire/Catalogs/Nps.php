@@ -427,6 +427,42 @@ class Nps extends Component
         }
     }
 
+    public function exportActiveNps()
+    {
+        $nps = NumberPart::with('latestPrice')
+            ->where('active', true)
+            ->orderBy('partnumber')
+            ->get();
+
+        $filename = 'nps_activos_' . now()->format('Y-m-d_His') . '.csv';
+
+        return response()->streamDownload(function () use ($nps) {
+            $handle = fopen('php://output', 'w');
+
+            // BOM para que Excel detecte UTF-8 y no rompa acentos/ñ.
+            fwrite($handle, "\xEF\xBB\xBF");
+
+            fputcsv($handle, ['NP', 'Proceso', 'Detalles', 'Micras', 'Pulgadas', 'Decimetros', 'Ultimo Precio', 'Fecha Ultimo Precio']);
+
+            foreach ($nps as $np) {
+                fputcsv($handle, [
+                    $np->partnumber,
+                    $np->process,
+                    $np->details,
+                    $np->microns !== null ? round($np->microns, 4) : null,
+                    $np->inches !== null ? round($np->inches, 4) : null,
+                    $np->decimeters !== null ? round($np->decimeters, 4) : null,
+                    $np->latestPrice ? number_format($np->latestPrice->price, 2, '.', '') : null,
+                    $np->latestPrice ? $np->latestPrice->price_date->format('d/m/Y') : null,
+                ]);
+            }
+
+            fclose($handle);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
+
     public function calculateDecimeters()
     {
         $this->decimeters = $this->calculateDecimetersFromInches($this->inches);
