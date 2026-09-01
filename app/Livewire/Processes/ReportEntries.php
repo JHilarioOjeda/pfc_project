@@ -95,7 +95,7 @@ class ReportEntries extends Component
                 'tarima.registeredBy',
                 'numberPart',
                 'proccesses.charges.whoFree',
-                'proccesses.meditionsReports',
+                'proccesses.meditionsReports.folios',
             ])
             ->whereHas('tarima', function ($q) use ($from, $to) {
                 $q->whereBetween('register_date', [$from, $to]);
@@ -154,7 +154,7 @@ class ReportEntries extends Component
             'personal_recibe'    => $tarima?->registeredBy?->name,
             'fecha_produccion'   => $process?->start_date?->format('d/m/Y'),
             'personal_libera_pt' => $lastFreedCharge?->whoFree?->name,
-            'reporte_calidad'    => $latestReport?->folio,
+            'reporte_calidad'    => $latestReport?->folios->sortByDesc('id')->first()?->folio,
             'fecha_compromiso'   => null,
             'fecha_salida'       => null,
             'numero_remision'    => null,
