@@ -37,4 +37,31 @@ class MeditionsReport extends Model
     {
         return $this->belongsTo(Proccess::class, 'id_proccess');
     }
+
+    // Folios (documentos impresos) de los que este reporte ha formado parte.
+    // Un mismo reporte puede pertenecer a más de uno a lo largo del tiempo
+    // (se imprime solo primero, se reimprime después combinado con otros
+    // reportes bajo un folio distinto), por eso es muchos-a-muchos.
+    public function folios()
+    {
+        return $this->belongsToMany(
+            MeditionsReportFolio::class,
+            'meditions_report_folio_report',
+            'id_meditions_report',
+            'id_folio'
+        )->withTimestamps();
+    }
+
+    // El folio más reciente asignado a este reporte, o null si nunca ha sido
+    // impreso como parte de un lote. Si la relación ya fue cargada (p. ej.
+    // con ->with('folios')) reutiliza la colección en memoria para evitar
+    // una consulta extra dentro de listados.
+    public function latestFolio(): ?MeditionsReportFolio
+    {
+        if ($this->relationLoaded('folios')) {
+            return $this->folios->sortByDesc('id')->first();
+        }
+
+        return $this->folios()->orderByDesc('meditions_report_folios.id')->first();
+    }
 }

@@ -29,6 +29,7 @@
             @page {
                 size: letter;
                 margin: 0;
+                padding: 0;
             }
 
             .no-print {
@@ -71,7 +72,15 @@
         $maxRowsPerTablePage = 26; // filas que caben en una página dedicada solo a la tabla
         $generalReserve      = 8;  // filas de tabla "equivalentes" que ocupan encabezado/fecha/folio/datos generales en la primera página
 
-        $totalRows = $reports->sum(fn ($r) => max(1, $r->observations->count()));
+        // Cada reporte no solo ocupa "N" filas de mediciones: su columna MEDICIONES
+        // es una tabla anidada con su propio encabezado (No. medición / Espesor /
+        // Apariencia), que agrega una fila de alto adicional. Si no se cuenta ese
+        // encabezado, la estimación de capacidad queda por debajo del alto real
+        // renderizado y la tabla se desborda de la página al imprimir/exportar a
+        // PDF (aunque en pantalla no se note, porque ahí no hay saltos de página).
+        $rowEquivalent = fn ($r) => max(1, $r->observations->count()) + 1;
+
+        $totalRows = $reports->sum($rowEquivalent);
 
         $reportPages = collect();
 
@@ -89,7 +98,7 @@
             $capacity    = max(5, $maxRowsPerTablePage - $generalReserve);
 
             foreach ($reports as $report) {
-                $rowCount = max(1, $report->observations->count());
+                $rowCount = $rowEquivalent($report);
 
                 if ($chunkRows > 0 && ($chunkRows + $rowCount) > $capacity) {
                     $reportPages->push([
@@ -131,7 +140,7 @@
 
     <div class="w-full overflow-x-auto print-area">
         @foreach ($reportPages as $pageIndex => $page)
-            <div class="bg-white rounded-lg mx-auto text-sm flex flex-col mt-4 report-page" style="min-height: 27.94cm; width: 21.59cm; padding: 1cm;">
+            <div class="bg-white rounded-lg mx-auto text-sm flex flex-col mt-4 report-page" style="min-height: 27.5cm; width: 21.59cm; padding: 1cm;">
                 <!-- ENCABEZADO -->
                 <div class="flex items-start justify-between border-b border-black pb-2">
                     <div class="flex items-center space-x-2 w-2/12">
@@ -163,14 +172,14 @@
                             </tr>
                             <tr>
                                 <td class="border border-black px-2 py-1 font-semibold">FOLIO</td>
-                                <td class="border border-black px-2 py-1 text-center">{{ optional($firstReport)->folio }}</td>
+                                <td class="border border-black px-2 py-1 text-center">{{ $folio ?? '' }}</td>
                             </tr>
                         </table>
                     </div>
 
                     <!-- DATOS GENERALES -->
-                    <div class="w-full mt-4">
-                        <table class="w-full border-collapse border border-black text-[11px]">
+                    <div class="w-full mt-2">
+                        <table class="w-full border-collapse border border-black text-[10px]">
                             <tr>
                                 <td class="border border-black px-2 py-1 font-semibold w-2/12">Cliente / Razón social</td>
                                 <td class="border border-black px-2 py-1" colspan="3">{{ optional($customer)->name }}</td>
@@ -195,8 +204,8 @@
                     <!-- OBSERVACIONES / CONDICIONES DEL MATERIAL -->
                     <div class="w-full mt-4">
                         <p class="font-semibold text-sm">Observaciones / Condiciones del material</p>
-                        <p class="text-[11px] mb-1">TIPO DE PROCESO: {{ optional($numberPart)->process }}</p>
-                        <table class="w-full border-collapse border border-black text-[11px]">
+                        <p class="text-[10px] mb-1">TIPO DE PROCESO: {{ optional($numberPart)->process }}</p>
+                        <table class="w-full border-collapse border border-black text-[10px]">
                             <thead>
                                 <tr class="bg-gray-100">
                                     <th class="border border-black px-2 py-1 text-center align-middle">CÓDIGO</th>
@@ -225,7 +234,7 @@
                                         <td class="border border-black px-2 py-1 text-center align-top">{{ optional($numberPartRow)->partnumber }}</td>
                                         <td class="border border-black px-2 py-1 text-center align-top">{{ optional($tarimaNpRow)->oc }}</td>
                                         <td class="border border-black px-2 py-1 text-center align-top">{{ optional($tarimaNpRow)->of }}</td>
-                                        <td class="border border-black px-2 py-1 text-center align-top">{{ optional($tarimaNpRow)->quantity }}</td>
+                                        <td class="border border-black px-2 py-1 text-center align-top">{{ round(optional($tarimaNpRow)->quantity, 2) }}</td>
                                         <td class="border border-black px-0 py-0">
                                             <table class="w-full text-[10px] border-collapse">
                                                 <thead>
@@ -265,16 +274,16 @@
 
                 @if($page['showClosing'])
                     <!-- NOTA Y CADUCIDAD -->
-                    <div class="w-full mt-3 text-[10px]">
+                    <div class="w-full mt-2 text-[10px]">
                         <p class="font-semibold">NOTA</p>
                         <p>*Se recomienda mantener el material en un lugar seco libre de humedad o líquidos (agua, soluciones, aceites, etc.) o solventes que emanen vapores.</p>
-                        <p class="mt-1">Caducidad: 30 días a partir de la fecha de su tratamiento.</p>
+                        <p class="">Caducidad: 30 días a partir de la fecha de su tratamiento.</p>
                     </div>
 
                     <!-- FIRMA -->
-                    <div class="w-full mt-10 flex flex-col items-center justify-end flex-1">
+                    <div class="w-full flex flex-col items-center justify-end flex-1">
                         <img src="{{ asset('imgs/signs/firma_transparente_negro.png') }}" alt="Firma" class="h-16 object-contain">
-                        <div class="w-1/2 border-t border-black mt-1 pt-1 text-center text-[11px]">
+                        <div class="w-1/2 border-t border-black mt-1 pt-1 text-center text-[10px]">
                             <p class="font-semibold">Erika Martínez</p>
                             <p>Nombre y firma del responsable de calidad</p>
                         </div>
