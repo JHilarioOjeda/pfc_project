@@ -53,16 +53,7 @@
         </div>
         <div class="flex w-full flex-col space-y-5 lg:flex-row lg:space-y-0 lg:space-x-10 mt-5">
             <div class="w-full lg:w-1/2 flex flex-col space-y-3 lg:flex-row lg:space-y-0 lg:space-x-4">
-                <div class="w-full lg:w-1/3">
-                    <p class="text-secondarycolor">Folio:</p>
-                    <input wire:model="folio" type="text" class="inputcatalogues w-full" @if($status == 'finished') disabled @endif>
-                    <span class="text-red-500 text-xs italic">
-                        @error('folio')
-                            {{$message}}
-                        @enderror
-                    </span>
-                </div>
-                <div class="w-full lg:w-1/3">
+                <div class="w-full lg:w-1/2">
                     <p class="text-secondarycolor">Método:</p>
                     <select wire:model="method" class="inputcatalogues w-full" @if($status == 'finished') disabled @endif>
                         <option value="">Seleccionar...</option>
@@ -75,7 +66,7 @@
                         @enderror
                     </span>
                 </div>
-                <div class="w-full lg:w-1/3">
+                <div class="w-full lg:w-1/2">
                     <p class="text-secondarycolor">Micras:</p>
                     <input wire:model="requirement" type="number" class="inputcatalogues w-full" @if($status == 'finished') disabled @endif>
                     <span class="text-red-500 text-xs italic">

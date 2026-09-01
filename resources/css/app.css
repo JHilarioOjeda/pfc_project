@@ -92,6 +92,7 @@ select.team-select + .ss-main .ss-search input {
         left: 0;
         top: 0;
         margin: 0;
+        padding: 0;
     }
     .no-print {
         display: none !important;

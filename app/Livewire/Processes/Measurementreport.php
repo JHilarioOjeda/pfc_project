@@ -15,7 +15,7 @@ class Measurementreport extends Component
 {
     public $idprocess, $process_selected;
 
-    public $folio, $method, $requirement, $status, $notes = '*Se recomienda mantener el material en un lugar seco libre de humedad o líquidos (agua, soluciones, aceites, etc.) o solventes que emanen vapores.';
+    public $method, $requirement, $status, $notes = '*Se recomienda mantener el material en un lugar seco libre de humedad o líquidos (agua, soluciones, aceites, etc.) o solventes que emanen vapores.';
     public $visual_appearance, $thickness_in_microns;
 
     // Lista de mediciones registradas (cada elemento: id_observation, thickness_in_microns, visual_appearance)
@@ -34,7 +34,6 @@ class Measurementreport extends Component
 
             if ($report) {
                 $this->reportExists = true;
-                $this->folio = $report->folio;
                 $this->method = $report->method;
                 $this->requirement = $report->requirement;
                 $this->status = $report->status;
@@ -60,12 +59,10 @@ class Measurementreport extends Component
     protected function validateReportFields(): void
     {
         $this->validate([
-            'folio' => 'required|string|max:255',
             'method' => 'required|string|max:255',
             'requirement' => 'nullable|string',
             'notes' => 'nullable|string',
         ], [], [
-            'folio' => 'Folio',
             'method' => 'Método',
             'requirement' => 'Requisito',
             'notes' => 'Notas',
@@ -95,7 +92,6 @@ class Measurementreport extends Component
         $report = MeditionsReport::firstOrCreate(
             ['id_proccess' => $this->process_selected->id],
             [
-                'folio' => $this->folio,
                 'method' => $this->method,
                 'requirement' => $this->requirement,
                 'notes' => $this->notes,
@@ -106,7 +102,6 @@ class Measurementreport extends Component
         if ($report->wasRecentlyCreated) {
             $this->reportExists = true;
         } else {
-            $report->folio = $this->folio;
             $report->method = $this->method;
             $report->requirement = $this->requirement;
             $report->notes = $this->notes;

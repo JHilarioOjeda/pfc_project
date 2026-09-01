@@ -31,6 +31,7 @@ class PFController extends Controller
             'proccess.tarimaNp.tarima.customer',
             'proccess.tarimaNp.numberPart',
             'observations',
+            'folios',
         ])->where('id_proccess', $proccess)->firstOrFail();
 
         return view('formats.measurementreport-format', compact('report'));
@@ -42,11 +43,19 @@ class PFController extends Controller
         $reportIds = array_filter(explode(',', $request->input('reports', '')));
 
         $tarima = Tarima::with('customer')->findOrFail($tarimaId);
-        $reports = MeditionsReport::with(['proccess.tarimaNp.numberPart', 'observations'])
+        $reports = MeditionsReport::with(['proccess.tarimaNp.numberPart', 'observations', 'folios'])
             ->whereIn('id', $reportIds)
             ->get();
 
-        return view('formats.measurementreporttarimas-format', compact('tarima', 'reports'));
+        $folio = $request->input('folio');
+
+        if (!$folio) {
+            // Enlace directo/antiguo sin folio explícito en la URL: se cae
+            // de vuelta al folio más reciente del primer reporte, si tiene.
+            $folio = optional($reports->first())->latestFolio()?->folio;
+        }
+
+        return view('formats.measurementreporttarimas-format', compact('tarima', 'reports', 'folio'));
     }
 
     public function processReportPrint(Request $request)
