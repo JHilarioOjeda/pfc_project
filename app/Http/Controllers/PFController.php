@@ -74,9 +74,21 @@ class PFController extends Controller
             ->first();
 
         $processes = Proccess::query()
-            ->with(['tarimaNp.tarima.customer', 'tarimaNp.numberPart', 'whomade', 'timeouts', 'line', 'charges'])
+            ->with([
+                'tarimaNp.tarima.customer',
+                'tarimaNp.numberPart',
+                'whomade',
+                'line',
+                'charges' => fn ($q) => $q->whereDate('made_date', $date)->with('timeouts'),
+            ])
             ->where('who_made', $leaderId)
-            ->whereDate('start_date', $date)
+            ->where(function ($query) use ($date) {
+                $query->where(function ($q) use ($date) {
+                    $q->whereDate('start_date', $date)->whereDoesntHave('charges');
+                })->orWhereHas('charges', function ($q) use ($date) {
+                    $q->whereDate('made_date', $date);
+                });
+            })
             ->orderBy('id')
             ->get();
 
@@ -90,7 +102,7 @@ class PFController extends Controller
             $totalPieces += $pieces;
             $totalDecimeters += $pieces * $decimeters;
 
-            foreach ($process->timeouts as $timeout) {
+            foreach ($process->charges->flatMap->timeouts as $timeout) {
                 $label = (string) $timeout->type;
                 $hours = (float) $timeout->hours;
 
