@@ -76,6 +76,7 @@
                 <div class="w-full lg:w-1/2">
                     <p class="text-secondarycolor">Nombre(s) de operador(es):</p>
                     <textarea wire:model="operator_name" class="inputcatalogues w-full" @if((!in_array(Auth::user()->user_type, ['1', '3', '6'])) || $process_selected->status === 'finished') disabled @endif></textarea>
+                    <span class="text-red-500 text-xs italic">@error('operator_name') {{ $message }} @enderror</span>
                 </div>
             </div>
 
