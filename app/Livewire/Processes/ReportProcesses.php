@@ -68,9 +68,15 @@ class ReportProcesses extends Component
             ->first();
 
         $this->processes = Proccess::query()
-            ->with(['tarimaNp.tarima.customer', 'tarimaNp.numberPart', 'whomade', 'line', 'charges.timeouts'])
+            ->with([
+                'tarimaNp.tarima.customer',
+                'tarimaNp.numberPart',
+                'whomade',
+                'line',
+                'charges' => fn ($q) => $q->whereDate('made_date', $this->date)->with('timeouts'),
+            ])
             ->where('who_made', $this->leader_id)
-            ->whereDate('start_date', $this->date)
+            ->where($this->dayActivityFilter())
             ->orderBy('id')
             ->get();
 
@@ -97,6 +103,24 @@ class ReportProcesses extends Component
         }
     }
 
+    /**
+     * Un proceso cuenta para un día si inició ese día y aún no tiene ninguna
+     * carga (para no perder de vista lo recién iniciado), o si tiene al menos
+     * una carga hecha ese día (made_date), sin importar cuándo inició.
+     */
+    protected function dayActivityFilter(): \Closure
+    {
+        $date = $this->date;
+
+        return function ($query) use ($date) {
+            $query->where(function ($q) use ($date) {
+                $q->whereDate('start_date', $date)->whereDoesntHave('charges');
+            })->orWhereHas('charges', function ($q) use ($date) {
+                $q->whereDate('made_date', $date);
+            });
+        };
+    }
+
     public function loadAvailableDates(): void
     {
         if (!$this->leader_id) {
@@ -104,22 +128,28 @@ class ReportProcesses extends Component
             return;
         }
 
-        $query = Proccess::query()
-            ->selectRaw('DATE(start_date) as process_date, COUNT(*) as total')
-            ->groupByRaw('DATE(start_date)')
-            ->orderByRaw('DATE(start_date) DESC')
-            ->limit(30);
+        $leaderIds = (string) $this->leader_id === 'all'
+            ? collect($this->leaders)->pluck('id')
+            : collect([$this->leader_id]);
 
-        if ((string) $this->leader_id === 'all') {
-            $leaderIds = collect($this->leaders)->pluck('id');
-            $query->whereIn('who_made', $leaderIds);
-        } else {
-            $query->where('who_made', $this->leader_id);
-        }
+        $startDatesQuery = Proccess::query()
+            ->whereIn('who_made', $leaderIds)
+            ->whereDoesntHave('charges')
+            ->selectRaw('DATE(start_date) as process_date');
 
-        $this->availableDates = $query
+        $chargeDatesQuery = Proccess::query()
+            ->join('charges', 'charges.id_proccess', '=', 'proccess.id')
+            ->whereIn('proccess.who_made', $leaderIds)
+            ->selectRaw('DATE(charges.made_date) as process_date');
+
+        $this->availableDates = $startDatesQuery
+            ->unionAll($chargeDatesQuery)
             ->get()
-            ->map(fn($r) => ['date' => $r->process_date, 'total' => (int) $r->total])
+            ->groupBy('process_date')
+            ->map(fn ($rows, $date) => ['date' => $date, 'total' => $rows->count()])
+            ->sortByDesc('date')
+            ->take(30)
+            ->values()
             ->toArray();
 
         $this->dispatch('dates-updated', dates: array_column($this->availableDates, 'date'));
@@ -142,9 +172,14 @@ class ReportProcesses extends Component
             $leaderIds = collect($this->leaders)->pluck('id');
 
             $allProcesses = Proccess::query()
-                ->with(['tarimaNp.tarima.customer', 'tarimaNp.numberPart', 'line', 'charges.timeouts'])
+                ->with([
+                    'tarimaNp.tarima.customer',
+                    'tarimaNp.numberPart',
+                    'line',
+                    'charges' => fn ($q) => $q->whereDate('made_date', $this->date)->with('timeouts'),
+                ])
                 ->whereIn('who_made', $leaderIds)
-                ->whereDate('start_date', $this->date)
+                ->where($this->dayActivityFilter())
                 ->orderBy('who_made')
                 ->orderBy('id')
                 ->get();

@@ -194,8 +194,12 @@ class Process extends Component
     public function addCharge()
     {
         $this->validate([
-            'new_charge_quantity' => 'required|numeric|min:1',
+            'id_line'              => 'required|exists:work_lines,id',
+            'operator_name'        => 'required',
+            'new_charge_quantity'  => 'required|numeric|min:1',
         ], [], [
+            'id_line'             => 'Línea',
+            'operator_name'       => 'Nombre(s) de operador(es)',
             'new_charge_quantity' => 'Cantidad de piezas',
         ]);
 
@@ -207,6 +211,10 @@ class Process extends Component
             $this->addError('new_charge_quantity', "No pueden asignarse más piezas de las restantes ({$restantes}).");
             return;
         }
+
+        $this->process_selected->id_line       = $this->id_line;
+        $this->process_selected->operator_name = $this->operator_name;
+        $this->process_selected->save();
 
         $charge = Charge::create([
             'id_proccess'     => $this->process_selected->id,
