@@ -68,7 +68,7 @@
                 </div>
                 <div class="w-full lg:w-1/2">
                     <p class="text-secondarycolor">Micras:</p>
-                    <input wire:model="requirement" type="number" class="inputcatalogues w-full" @if($status == 'finished') disabled @endif>
+                    <input wire:model="requirement" type="number" step="any" class="inputcatalogues w-full bg-gray-100" readonly>
                     <span class="text-red-500 text-xs italic">
                         @error('requirement')
                             {{$message}}

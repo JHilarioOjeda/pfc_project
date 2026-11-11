@@ -38,7 +38,7 @@
                 <tbody>
                     @if (count($processes) != 0)
                         @foreach ($processes as $process)
-                            <tr class="border-b border-gray-200 text-sm">
+                            <tr class="border-b border-gray-200 text-sm [&>td]:!py-4">
                                 <td class="px-1 py-2 text-center">
                                     {{$process->id}}
                                 </td>
@@ -82,42 +82,54 @@
                                 @switch($process->status)
                                     @case('pending')
                                         <td class="px-2 py-2 text-center">
-                                            <span class="px-1 py-1 rounded-lg text-[9px] uppercase font-semibold bg-gray-200 text-gray-600">sin comenzar</span>
+                                            <span class="px-1 py-1 rounded-lg text-xs uppercase font-semibold bg-gray-200 text-gray-600">sin comenzar</span>
                                         </td>
-                                        <td class="px-2 py-2 text-right space-y-3">
+                                        <td class="px-2 py-2">
+                                            <div class="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center sm:justify-end gap-2 min-w-[10rem]">
                                             @if(in_array(Auth::user()->user_type, ['1', '3', '6']))
-                                            <x-button-primary onclick="startProcess({{$process->id}})" class="!px-2 !py-1 text-[10px]">
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-3 mr-1">
+                                            <x-button-primary onclick="startProcess({{ $process->id }})" class="!px-3 !py-2 text-xs justify-center">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 mr-1">
                                                     <path fill-rule="evenodd" d="M3 2.25a.75.75 0 0 1 .75.75v.54l1.838-.46a9.75 9.75 0 0 1 6.725.738l.108.054A8.25 8.25 0 0 0 18 4.524l3.11-.732a.75.75 0 0 1 .917.81 47.784 47.784 0 0 0 .005 10.337.75.75 0 0 1-.574.812l-3.114.733a9.75 9.75 0 0 1-6.594-.77l-.108-.054a8.25 8.25 0 0 0-5.69-.625l-2.202.55V21a.75.75 0 0 1-1.5 0V3A.75.75 0 0 1 3 2.25Z" clip-rule="evenodd" />
                                                 </svg>
-
                                                 Comenzar proceso
                                             </x-button-primary>
                                             @endif
+                                            </div>
                                         </td>
                                         @break
                                     @case('inprocess')
                                         <td class="px-2 py-2 text-center">
-                                            <span class="px-2 py-1 rounded-lg text-[10px] uppercase font-semibold bg-yellow-200 text-yellow-600">En proceso</span>
+                                            <span class="px-2 py-1 rounded-lg text-xs uppercase font-semibold bg-yellow-200 text-yellow-600">En proceso</span>
                                         </td>
 
-                                        <td class="px-2 py-2 text-right space-y-3">
-                                            <x-secondary-hyperlink href="{{ route('processes.process', $process->id) }}" target="" class="!px-2 !py-1 text-[10px]">
+                                        <td class="px-2 py-2">
+                                            <div class="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center sm:justify-end gap-2 min-w-[10rem]">
+                                            
+                                            <x-secondary-hyperlink href="{{ route('processes.process', $process->id) }}" target="" class="!px-3 !py-2 text-xs justify-center">
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 mr-1">
                                                     <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32l8.4-8.4Z" />
                                                     <path d="M5.25 5.25a3 3 0 0 0-3 3v10.5a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3V13.5a.75.75 0 0 0-1.5 0v5.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5V8.25a1.5 1.5 0 0 1 1.5-1.5h5.25a.75.75 0 0 0 0-1.5H5.25Z" />
                                                 </svg>
                                                 Detalles
                                             </x-secondary-hyperlink>
+                                            @if(in_array(Auth::user()->user_type, ['1', '3', '6']) && !$process->hasRegisteredInfo())
+                                            <x-danger-button type="button" onclick="revertProcess({{ $process->id }})"
+                                                class="!px-3 !py-2 text-xs justify-center order-last sm:order-first !bg-white !text-red-600 border !border-red-500 hover:!bg-red-50">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 mr-1"><path fill-rule="evenodd" d="M9.53 2.47a.75.75 0 0 1 0 1.06L4.81 8.25H15a6.75 6.75 0 0 1 0 13.5h-3a.75.75 0 0 1 0-1.5h3a5.25 5.25 0 1 0 0-10.5H4.81l4.72 4.72a.75.75 0 1 1-1.06 1.06l-6-6a.75.75 0 0 1 0-1.06l6-6a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" /></svg>
+                                                Revertir
+                                            </x-danger-button>
+                                            @endif
+                                            </div>
                                         </td>
                                         @break
                                     @case('finished')
                                         <td class="px-2 py-2 text-center">
-                                            <span class="px-2 py-1 rounded-lg text-[10px] uppercase font-semibold bg-green-200 text-green-600">Completado</span>
+                                            <span class="px-2 py-1 rounded-lg text-xs uppercase font-semibold bg-green-200 text-green-600">Completado</span>
                                         </td>
 
-                                        <td class="px-2 py-2 text-right space-y-3 space-x-3">
-                                            <x-secondary-hyperlink href="{{ route('processes.process', $process->id) }}" target="" class="!px-2 !py-1 text-[10px]">
+                                        <td class="px-2 py-2">
+                                            <div class="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center sm:justify-end gap-2 min-w-[10rem]">
+                                            <x-secondary-hyperlink href="{{ route('processes.process', $process->id) }}" target="" class="!px-3 !py-2 text-xs justify-center">
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 mr-1">
                                                     <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32l8.4-8.4Z" />
                                                     <path d="M5.25 5.25a3 3 0 0 0-3 3v10.5a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3V13.5a.75.75 0 0 0-1.5 0v5.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5V8.25a1.5 1.5 0 0 1 1.5-1.5h5.25a.75.75 0 0 0 0-1.5H5.25Z" />
@@ -126,7 +138,8 @@
                                             </x-secondary-hyperlink>
 
                                             @if(in_array(Auth::user()->user_type, ['1', '5', '6']))
-                                            <x-secondary-hyperlink href="{{ route('measurementreports', $process->id) }}" target="" class="!px-2 !py-1 text-[9.9px] lg:text-[10px]">
+                                            <x-secondary-hyperlink href="{{ route('measurementreports', $process->id) }}" target="" class="!px-3 !py-2 text-[10px] justify-center">
+                                                
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 mr-1">
                                                     <path fill-rule="evenodd" d="M5.625 1.5H9a3.75 3.75 0 0 1 3.75 3.75v1.875c0 1.036.84 1.875 1.875 1.875H16.5a3.75 3.75 0 0 1 3.75 3.75v7.875c0 1.035-.84 1.875-1.875 1.875H5.625a1.875 1.875 0 0 1-1.875-1.875V3.375c0-1.036.84-1.875 1.875-1.875ZM9.75 17.25a.75.75 0 0 0-1.5 0V18a.75.75 0 0 0 1.5 0v-.75Zm2.25-3a.75.75 0 0 1 .75.75v3a.75.75 0 0 1-1.5 0v-3a.75.75 0 0 1 .75-.75Zm3.75-1.5a.75.75 0 0 0-1.5 0V18a.75.75 0 0 0 1.5 0v-5.25Z" clip-rule="evenodd" />
                                                     <path d="M14.25 5.25a5.23 5.23 0 0 0-1.279-3.434 9.768 9.768 0 0 1 6.963 6.963A5.23 5.23 0 0 0 16.5 7.5h-1.875a.375.375 0 0 1-.375-.375V5.25Z" />
@@ -135,11 +148,12 @@
                                                 Reporte de medición
                                             </x-secondary-hyperlink>
                                             @endif
+                                            </div>
                                         </td>
                                         @break
                                     @default
                                         <td class="px-4 py-2 text-center">
-                                            <span class="px-2 py-1 rounded-lg text-[10px] uppercase old bg-gray-100 text-gray-800">{{$process->status}}</span>
+                                            <span class="px-2 py-1 rounded-lg text-xs uppercase old bg-gray-100 text-gray-800">{{$process->status}}</span>
                                         </td>
                                         <td class="px-4 py-2 text-center space-y-3">
                                             
@@ -161,12 +175,61 @@
 
 </div>
 
+@php
+    $processDataMap = [];
+    foreach ($processes as $p) {
+        $processDataMap[$p->id] = [
+            'np' => $p->tarimaNp->numberPart->partnumber ?? 'N/A',
+            'proceso' => $p->tarimaNp->numberPart->process ?? 'N/A',
+            'tarima' => $p->tarimaNp->tarima->serial_number ?? 'N/A',
+            'cliente' => $p->tarimaNp->tarima->customer->name ?? 'N/A',
+            'oc' => $p->tarimaNp->oc ?? 'N/A',
+            'of' => $p->tarimaNp->of ?? 'N/A',
+            'cantidad' => round($p->tarimaNp->quantity ?? 0, 4),
+        ];
+    }
+@endphp
 @push('js')
 <script>
+    const processData = {!! json_encode($processDataMap) !!};
+    function escapeHtml(v){
+        return String(v ?? 'N/A').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function revertProcess(idprocess){
+        const d = processData[idprocess] || {};
+        const np = d.np, tarima = d.tarima;
+        Swal.fire({
+            title: '¿Revertir proceso?',
+            html: `Se revertirá el proceso <b>#${idprocess}</b> (NP <b>${escapeHtml(np)}</b>, tarima <b>${escapeHtml(tarima)}</b>) a <b>'Sin comenzar'</b>.<br><br>Solo es posible si aún no se ha registrado información (línea, cargas, piezas o reportes).`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#F27D16',
+            cancelButtonColor: '#EF4444',
+            confirmButtonText: 'Sí, revertir',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                @this.call('revertProcess', idprocess);
+            }
+        });
+    }
+
     function startProcess(idprocess){
+        const d = processData[idprocess] || {};
         Swal.fire({
             title: '¿Estás seguro?',
-            html: "Al comenzar el proceso, <span style='font-weight: bold;'>SE CONFIRMARÁ EL CONTEO DE PIEZAS</span>, y no se podrá modificar la cantidad de piezas a procesar. Además, el proceso se marcará como 'En proceso' y no se podrá eliminar. Asegúrate de que toda la información sea correcta antes de continuar.",
+            html: `<div style="text-align:left;background:#F3F4F6;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:14px;line-height:1.7">
+                    <div><b>ID de proceso:</b> ${idprocess}</div>
+                    <div><b>Número de parte:</b> ${escapeHtml(d.np)}</div>
+                    <div><b>Proceso:</b> ${escapeHtml(d.proceso)}</div>
+                    <div><b># Tarima:</b> ${escapeHtml(d.tarima)}</div>
+                    <div><b>Cliente:</b> ${escapeHtml(d.cliente)}</div>
+                    <div><b>Orden de compra:</b> ${escapeHtml(d.oc)}</div>
+                    <div><b>Orden de fabricación:</b> ${escapeHtml(d.of)}</div>
+                    <div><b>Cantidad a procesar:</b> ${escapeHtml(d.cantidad)}</div>
+                   </div>
+                   <b>Verifica que sea el proceso correcto.</b> Al comenzar, <span style='font-weight: bold;'>SE CONFIRMARÁ EL CONTEO DE PIEZAS</span> y el proceso se marcará como 'En proceso'. Si te equivocas, podrás revertirlo desde la lista mientras no tenga cargas registradas.`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#F27D16',
