@@ -30,12 +30,15 @@ class Measurementreport extends Component
         $this->process_selected = Proccess::find($idprocess);
 
         if ($this->process_selected) {
+            $this->requirement = $this->calculateMicrons();
+
             $report = MeditionsReport::where('id_proccess', $this->process_selected->id)->first();
 
             if ($report) {
                 $this->reportExists = true;
                 $this->method = $report->method;
-                $this->requirement = $report->requirement;
+                // Las micras se calculan desde el número de parte; si no hay dato, se conserva lo guardado
+                $this->requirement = $this->requirement ?? $report->requirement;
                 $this->status = $report->status;
                 $this->notes = $report->notes;
 
@@ -49,6 +52,18 @@ class Measurementreport extends Component
                 }
             }
         }
+    }
+
+    // Micras tomadas automáticamente del número de parte del proceso
+    protected function calculateMicrons()
+    {
+        $microns = optional(optional($this->process_selected->tarimaNp)->numberPart)->microns;
+
+        if ($microns === null || $microns === '') {
+            return null;
+        }
+
+        return rtrim(rtrim(number_format((float) $microns, 6, '.', ''), '0'), '.');
     }
 
     public function render()

@@ -31,6 +31,19 @@ class Proccess extends Model
         'finished_date' => 'datetime',
     ];
 
+    // Indica si ya se capturó información que se perdería/quedaría inconsistente al revertir el inicio
+    public function hasRegisteredInfo(): bool
+    {
+        $charges = $this->charges_count ?? $this->charges()->count();
+        $reports = $this->meditions_reports_count ?? $this->meditionsReports()->count();
+
+        return $charges > 0
+            || $reports > 0
+            || (float) $this->pieces_alreadyproccess > 0
+            || !empty($this->id_line)
+            || !empty($this->document_url);
+    }
+
     public function tarimaNp(): BelongsTo
     {
         return $this->belongsTo(TarimaNp::class, 'id_tarima_np');

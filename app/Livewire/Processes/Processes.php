@@ -50,9 +50,44 @@ class Processes extends Component
         $this->resetPage();
     }
 
+    // Revierte un proceso iniciado por error a "sin comenzar"
+    public function revertProcess($idprocess): void
+    {
+        if (!in_array(Auth::user()->user_type, ['1', '3', '6'])) {
+            return;
+        }
+
+        $process = Proccess::find($idprocess);
+
+        if (!$process || $process->status !== 'inprocess') {
+            LivewireAlert::title('Solo se pueden revertir procesos que estén en proceso.')->warning()->show();
+            return;
+        }
+
+        if ($process->hasRegisteredInfo()) {
+            LivewireAlert::title('No se puede revertir: el proceso ya tiene información registrada (línea, cargas, piezas, reportes o documento).')->warning()->show();
+            return;
+        }
+
+        try {
+            $process->status = 'pending';
+            $process->start_date = null;
+            $process->who_made = null;
+            $process->save();
+
+            Log::info("Proceso {$process->id} revertido a 'pending' por el usuario " . Auth::id());
+
+            LivewireAlert::title('El proceso se revirtió correctamente.')->success()->show();
+        } catch (Throwable $e) {
+            Log::error('Error al revertir el proceso: ' . $e->getMessage());
+            LivewireAlert::title('Error al revertir el proceso.')->error()->show();
+        }
+    }
+
     public function render(){
 
         $procesos = Proccess::with(['tarimaNp.tarima', 'tarimaNp.numberPart'])
+            ->withCount(['charges', 'meditionsReports'])
             ->when(Auth::user()->user_type == '5', function($query) {
                 $query->where('status', 'finished');
             })
