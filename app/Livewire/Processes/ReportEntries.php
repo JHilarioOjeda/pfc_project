@@ -23,6 +23,7 @@ class ReportEntries extends Component
     public const HEADERS = [
         'folio'              => 'Folio (ID de proceso)',
         'estatus'            => 'Estatus',
+        'estatus_tarima'     => 'Estatus tarima',
         'fecha_recepcion'    => 'Fecha de recepción',
         'hora_recepcion'     => 'Hora de recepción',
         'cliente'            => 'Cliente',
@@ -47,8 +48,8 @@ class ReportEntries extends Component
 
     // Columnas del formato original que no se capturan en ningún lugar del sistema.
     public const UNAVAILABLE_COLUMNS = [
-        'urgencia', 'fecha_compromiso', 'fecha_salida',
-        'numero_remision', 'numero_factura', 'personal_entrega',
+        'urgencia', 'fecha_compromiso',
+        'numero_remision', 'numero_factura',
     ];
 
     public function mount(): void
@@ -93,6 +94,7 @@ class ReportEntries extends Component
             ->with([
                 'tarima.customer',
                 'tarima.registeredBy',
+                'tarima.deliveredBy',
                 'numberPart',
                 'proccesses.charges.whoFree',
                 'proccesses.meditionsReports.folios',
@@ -138,9 +140,18 @@ class ReportEntries extends Component
             default => ucfirst((string) $process->status),
         };
 
+        $estatusTarima = match ($tarima?->status) {
+            'inprocess' => 'En proceso de entrada',
+            'finished' => 'Confirmada',
+            'readytodeliver' => 'Listo para entrega',
+            'delivered' => 'Entregado',
+            default => ucfirst((string) $tarima?->status),
+        };
+
         return [
             'folio'              => $process?->id,
             'estatus'            => $estatus,
+            'estatus_tarima'     => $estatusTarima,
             'fecha_recepcion'    => $tarima?->register_date?->format('d/m/Y'),
             'hora_recepcion'     => $tarima?->register_date?->format('H:i'),
             'cliente'            => $customer?->name,
@@ -156,10 +167,10 @@ class ReportEntries extends Component
             'personal_libera_pt' => $lastFreedCharge?->whoFree?->name,
             'reporte_calidad'    => $latestReport?->folios->sortByDesc('id')->first()?->folio,
             'fecha_compromiso'   => null,
-            'fecha_salida'       => null,
+            'fecha_salida'       => $tarima?->delivered_date?->format('d/m/Y H:i'),
             'numero_remision'    => null,
             'numero_factura'     => null,
-            'personal_entrega'   => null,
+            'personal_entrega'   => $tarima?->deliveredBy?->name,
             'observaciones'      => $latestReport?->notes,
         ];
     }

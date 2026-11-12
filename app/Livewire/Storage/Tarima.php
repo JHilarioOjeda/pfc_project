@@ -112,6 +112,10 @@ class Tarima extends Component
 
     public function saveTarima()
     {
+        if ($this->isLocked) {
+            return;
+        }
+
         $this->validate([
             'serial_number' => 'required|unique:tarima,serial_number,' . ($this->tarima_selected ? $this->tarima_selected->id : 'NULL'),
             'id_customer' => 'required|exists:customers,id',
@@ -217,6 +221,10 @@ class Tarima extends Component
             return;
         }
 
+        if ($this->isLocked) {
+            return;
+        }
+
         $item = $this->numberPartsList[$index];
 
         // Si existe en BD, eliminar también el registro relacionado
@@ -236,6 +244,12 @@ class Tarima extends Component
         return TarimaModel::lastRegisterId();
     }
 
+    // La tarima ya fue confirmada (o está lista/entregada): no se puede editar
+    public function getIsLockedProperty(): bool
+    {
+        return !empty($this->tarimastatus) && $this->tarimastatus !== TarimaModel::STATUS_INPROCESS;
+    }
+
     public function getAllConfirmedProperty(): bool
     {
         if (empty($this->numberPartsList)) {
@@ -253,6 +267,11 @@ class Tarima extends Component
 
     public function confirmEntry()
     {
+        // Evita reconfirmar y duplicar procesos
+        if ($this->isLocked) {
+            return;
+        }
+
         $this->saveTarima();
         DB::beginTransaction();
 
