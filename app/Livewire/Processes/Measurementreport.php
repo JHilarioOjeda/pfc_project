@@ -116,6 +116,11 @@ class Measurementreport extends Component
 
         if ($report->wasRecentlyCreated) {
             $this->reportExists = true;
+
+            // Proceso terminado antes de capturar su reporte: la tarima puede quedar lista para entrega
+            if ($this->process_selected->status === 'finished') {
+                optional(optional($this->process_selected->tarimaNp)->tarima)->refreshDeliveryStatus();
+            }
         } else {
             $report->method = $this->method;
             $report->requirement = $this->requirement;
@@ -260,6 +265,8 @@ class Measurementreport extends Component
             $this->process_selected->status = 'finished';
             $this->process_selected->finished_date = now();
             $this->process_selected->save();
+
+            optional(optional($this->process_selected->tarimaNp)->tarima)->refreshDeliveryStatus();
 
             DB::commit();
 
