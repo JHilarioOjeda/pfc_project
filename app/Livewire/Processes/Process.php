@@ -174,6 +174,8 @@ class Process extends Component
             $this->process_selected->finished_date = now();
             $this->process_selected->save();
 
+            optional(optional($this->process_selected->tarimaNp)->tarima)->refreshDeliveryStatus();
+
             DB::commit();
 
             LivewireAlert::title('Proceso terminado correctamente.')

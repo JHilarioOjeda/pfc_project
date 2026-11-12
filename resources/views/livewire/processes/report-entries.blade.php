@@ -39,6 +39,7 @@
                     <tr class="bg-gray-200 font-semibold whitespace-nowrap">
                         <th class="px-2 py-2 hidden md:table-cell">{{ \App\Livewire\Processes\ReportEntries::HEADERS['folio'] }}</th>
                         <th class="px-2 py-2">{{ \App\Livewire\Processes\ReportEntries::HEADERS['estatus'] }}</th>
+                        <th class="px-2 py-2">{{ \App\Livewire\Processes\ReportEntries::HEADERS['estatus_tarima'] }}</th>
                         <th class="px-2 py-2">{{ \App\Livewire\Processes\ReportEntries::HEADERS['fecha_recepcion'] }}</th>
                         <th class="px-2 py-2 hidden md:table-cell">{{ \App\Livewire\Processes\ReportEntries::HEADERS['hora_recepcion'] }}</th>
                         <th class="px-2 py-2">{{ \App\Livewire\Processes\ReportEntries::HEADERS['cliente'] }}</th>
@@ -76,6 +77,18 @@
                                 @endphp
                                 <span class="px-2 py-1 rounded-lg font-semibold whitespace-nowrap {{ $badgeClasses }}">{{ $row['estatus'] }}</span>
                             </td>
+                            <td class="px-2 py-2">
+                                @php
+                                    $tarimaBadgeClasses = match($row['estatus_tarima']) {
+                                        'Entregado' => 'bg-purple-100 text-purple-700',
+                                        'Listo para entrega' => 'bg-blue-100 text-blue-700',
+                                        'Confirmada' => 'bg-green-100 text-green-700',
+                                        'En proceso de entrada' => 'bg-yellow-100 text-yellow-700',
+                                        default => 'bg-gray-100 text-gray-500',
+                                    };
+                                @endphp
+                                <span class="px-2 py-1 rounded-lg font-semibold whitespace-nowrap {{ $tarimaBadgeClasses }}">{{ $row['estatus_tarima'] }}</span>
+                            </td>
                             <td class="px-2 py-2 whitespace-nowrap">{{ $row['fecha_recepcion'] ?? '—' }}</td>
                             <td class="px-2 py-2 hidden md:table-cell whitespace-nowrap">{{ $row['hora_recepcion'] ?? '—' }}</td>
                             <td class="px-2 py-2">{{ $row['cliente'] ?? '—' }}</td>
@@ -91,15 +104,15 @@
                             <td class="px-2 py-2 hidden md:table-cell">{{ $row['personal_libera_pt'] ?? '—' }}</td>
                             <td class="px-2 py-2 hidden md:table-cell">{{ $row['reporte_calidad'] ?? '—' }}</td>
                             <td class="px-2 py-2 hidden md:table-cell text-gray-400">{{ $row['fecha_compromiso'] ?? '—' }}</td>
-                            <td class="px-2 py-2 hidden md:table-cell text-gray-400">{{ $row['fecha_salida'] ?? '—' }}</td>
+                            <td class="px-2 py-2 hidden md:table-cell whitespace-nowrap">{{ $row['fecha_salida'] ?? '—' }}</td>
                             <td class="px-2 py-2 hidden md:table-cell text-gray-400">{{ $row['numero_remision'] ?? '—' }}</td>
                             <td class="px-2 py-2 hidden md:table-cell text-gray-400">{{ $row['numero_factura'] ?? '—' }}</td>
-                            <td class="px-2 py-2 hidden md:table-cell text-gray-400">{{ $row['personal_entrega'] ?? '—' }}</td>
+                            <td class="px-2 py-2 hidden md:table-cell">{{ $row['personal_entrega'] ?? '—' }}</td>
                             <td class="px-2 py-2 hidden md:table-cell">{{ $row['observaciones'] ?? '—' }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="22" class="px-2 py-4 text-center text-sm text-gray-500">No se encontraron entradas para el rango de fechas y filtros seleccionados.</td>
+                            <td colspan="23" class="px-2 py-4 text-center text-sm text-gray-500">No se encontraron entradas para el rango de fechas y filtros seleccionados.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -109,7 +122,7 @@
         {{ $paginated->links() }}
 
         <p class="italic text-xs text-gray-500">
-            Las columnas en gris (Urgencia, Fecha compromiso, Fecha de salida, N° de remisión, N° factura y Personal que entrega) corresponden al formato original de almacén y no se capturan actualmente en el sistema, por lo que se muestran vacías. La columna "Folio" muestra el ID interno del proceso en el sistema.
+            Las columnas en gris (Urgencia, Fecha compromiso, N° de remisión y N° factura) corresponden al formato original de almacén y no se capturan actualmente en el sistema, por lo que se muestran vacías. La columna "Folio" muestra el ID interno del proceso en el sistema. "Fecha de salida" y "Personal que entrega" se llenan cuando la tarima se marca como entregada en Almacén.
         </p>
     </div>
 </div>

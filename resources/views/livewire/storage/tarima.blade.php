@@ -15,7 +15,7 @@
             <div class="w-full md:flex md:space-x-3 mb-4">
                 <div class="w-full md:w-1/3 mb-2">
                 <p class="text-secondarycolor">Número de tarima:</p>
-                <input wire:model="serial_number" type="text" class="inputcatalogues w-full" @if($tarimastatus === 'finished') disabled @endif>
+                <input wire:model="serial_number" type="text" class="inputcatalogues w-full" @if($this->isLocked) disabled @endif>
                 <span class="text-red-500 text-xs italic">
                     @error('serial_number')
                         {{$message}}
@@ -24,7 +24,7 @@
             </div>
             <div class="w-full md:w-1/3">
                 <p class="text-secondarycolor">Cliente:</p>
-                <select wire:model="id_customer" id="customer_select" class="inputcatalogues w-full" @if($tarimastatus === 'finished') disabled @endif>
+                <select wire:model="id_customer" id="customer_select" class="inputcatalogues w-full" @if($this->isLocked) disabled @endif>
                     <option value="">Selecciona un cliente</option>
                     @foreach ($customers as $customer)
                         <option value="{{$customer->id}}" @selected($id_customer == $customer->id)>{{$customer->company_name}}</option>
@@ -38,7 +38,19 @@
             </div>
         </div>
 
-        @if($tarimastatus !== 'finished')
+        @if($tarimastatus === 'delivered')
+            <div class="w-full mb-4 text-sm">
+                <span class="px-2 py-1 rounded-lg text-[10px] uppercase font-semibold bg-purple-200 text-purple-600">Entregado</span>
+                <span class="ml-2 text-secondarycolor"><span class="font-semibold">Fecha de entrega:</span> {{ $tarima_selected->delivered_date ? $tarima_selected->delivered_date->format('d/m/Y H:i') : '-' }}</span>
+                <span class="ml-2 text-gray-500"><span class="font-semibold">Quien entregó:</span> {{ optional($tarima_selected->deliveredBy)->name ?? '-' }}</span>
+            </div>
+        @elseif($tarimastatus === 'readytodeliver')
+            <div class="w-full mb-4">
+                <span class="px-2 py-1 rounded-lg text-[10px] uppercase font-semibold bg-blue-200 text-blue-600">Listo para entrega</span>
+            </div>
+        @endif
+
+        @if(!$this->isLocked)
         <div class="w-full">
             <p class="font-semibold text-primarycolor">NP  a registrar</p>
             <div class="w-full flex space-x-3">
@@ -127,7 +139,7 @@
                                                     <span class="bg-green-200 py-1 px-2 text-xs rounded-lg italic font-semibold mr-2 uppercase"><span class="text-green-600">conteo confirmado</span></span>
                                                 @endif
                                             @endif
-                                            @if($tarimastatus !== 'finished')
+                                            @if(!$this->isLocked)
                                             <x-buttondelete class="!px-2 !py-1 text-xs" onclick="confirmremovenp({{ $index }})">
                                                 Eliminar
                                             </x-buttondelete>
@@ -158,7 +170,7 @@
                     Crear entrada
                 </x-button-primary>
             @else
-                @if($tarimastatus !== 'finished')
+                @if(!$this->isLocked)
                     <x-secondary-button class="ml-auto" wire:click="saveTarima">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 mr-1">
                         <path fill-rule="evenodd" d="M12 2.25a.75.75 0 0 1 .75.75v11.69l3.22-3.22a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 1 1 1.06-1.06l3.22 3.22V3a.75.75 0 0 1 .75-.75Zm-9 13.5a.75.75 0 0 1 .75.75v2.25a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5V16.5a.75.75 0 0 1 1.5 0v2.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V16.5a.75.75 0 0 1 .75-.75Z" clip-rule="evenodd" />
@@ -167,7 +179,7 @@
                         Guardar cambios
                     </x-secondary-button>
                 @endif
-                @if($this->allConfirmed && $tarima_selected->status != 'finished')
+                @if($this->allConfirmed && !$this->isLocked)
                     <x-button-primary class="ml-2" onclick="confirmEntry()">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 mr-1">
                             <path fill-rule="evenodd" d="M19.916 4.626a.75.75 0 0 1 .208 1.04l-9 13.5a.75.75 0 0 1-1.154.114l-6-6a.75.75 0 0 1 1.06-1.06l5.353 5.353 8.493-12.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd" />
