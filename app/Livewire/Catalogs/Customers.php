@@ -29,6 +29,7 @@ class Customers extends Component
     public $search = '', $modalcecustomers = false, $customerselected = null;
 
     public $name, $company_name, $address, $zip_code, $telephone, $email, $rfc, $line, $active;
+    public $measurement_format = Customer::DEFAULT_MEASUREMENT_FORMAT;
 
     protected $listeners = ['changeCustomerStatus'];
 
@@ -42,6 +43,7 @@ class Customers extends Component
         'email' => 'Correo electrónico',
         'rfc' => 'RFC',
         'line' => 'Giro',
+        'measurement_format' => 'Formato de reporte de medición',
         'active' => 'Activo',
     ];
 
@@ -60,7 +62,7 @@ class Customers extends Component
     public function scmodalcustomers($idcustomer){
         if ($this->modalcecustomers == true) {
             $this->modalcecustomers = false;
-            $this->reset(['name', 'company_name', 'address', 'zip_code', 'telephone', 'email', 'rfc', 'line', 'active', 'modalcecustomers', 'customerselected']);
+            $this->reset(['name', 'company_name', 'address', 'zip_code', 'telephone', 'email', 'rfc', 'line', 'measurement_format', 'active', 'modalcecustomers', 'customerselected']);
         } else {
             $this->modalcecustomers = true;
             $this->customerselected = Customer::where('id', $idcustomer)->first();
@@ -73,6 +75,7 @@ class Customers extends Component
                 $this->email = $this->customerselected->email;
                 $this->rfc = $this->customerselected->rfc;
                 $this->line = $this->customerselected->line;
+                $this->measurement_format = $this->customerselected->measurement_format ?? Customer::DEFAULT_MEASUREMENT_FORMAT;
                 $this->active = $this->customerselected->active;
             }
         }
@@ -81,6 +84,7 @@ class Customers extends Component
     public  function createUpdateCustomer(){
         $this->rules = [
             'company_name' => 'required',
+            'measurement_format' => 'required|in:' . implode(',', array_keys(Customer::MEASUREMENT_FORMATS)),
         ];
 
         $this->validate();
@@ -97,6 +101,7 @@ class Customers extends Component
             $customer->email = $this->email;
             $customer->rfc = $this->rfc;
             $customer->line = $this->line;
+            $customer->measurement_format = (int) $this->measurement_format;
             $customer->active = $this->customerselected ? $this->active : true;
             $customer->save();
 

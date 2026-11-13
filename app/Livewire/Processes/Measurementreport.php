@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Proccess;
 use App\Models\MeditionsReport;
 use App\Models\MeditionsreportObservation;
+use App\Models\MeditionsReportFolio;
+use Illuminate\Validation\Rule;
 
 class Measurementreport extends Component
 {
@@ -23,6 +25,13 @@ class Measurementreport extends Component
 
     // Indica si ya existe un reporte de medición para este proceso
     public $reportExists = false;
+
+    // Folio para imprimir el reporte individual. Igual que en la impresión por
+    // tarima: solo se pide cuando este reporte nunca se ha impreso solo; si ya
+    // existe un folio que contiene únicamente este reporte, se reutiliza.
+    public $folio;
+    public $requiresFolio = false;
+    public $lastFolioUsed;
     
     public function mount($idprocess)
     {
@@ -50,8 +59,83 @@ class Measurementreport extends Component
                         'visual_appearance' => $observation->visual_appearance,
                     ];
                 }
+
+                $this->refreshFolioRequirement($report);
             }
         }
+    }
+
+    protected function refreshFolioRequirement(?MeditionsReport $report = null): void
+    {
+        $report = $report ?? $this->currentReport();
+
+        $this->requiresFolio = $report !== null
+            && MeditionsReportFolio::findExactForReports([$report->id]) === null;
+
+        $this->lastFolioUsed = MeditionsReportFolio::query()
+            ->orderByDesc('id')
+            ->value('folio');
+    }
+
+    protected function currentReport(): ?MeditionsReport
+    {
+        return $this->process_selected
+            ? MeditionsReport::where('id_proccess', $this->process_selected->id)->first()
+            : null;
+    }
+
+    // Abre el documento del reporte individual. Si el reporte nunca se ha
+    // impreso solo, exige un folio nuevo y lo registra antes de imprimir.
+    public function printReport()
+    {
+        $report = $this->currentReport();
+
+        if (!$report) {
+            LivewireAlert::title('No existe un reporte de medición para este proceso.')
+                ->warning()
+                ->show();
+            return;
+        }
+
+        $existingFolio = MeditionsReportFolio::findExactForReports([$report->id]);
+
+        if ($existingFolio) {
+            // Reimpresión: no se pide folio ni se toca la base de datos.
+            $folioValue = $existingFolio->folio;
+        } else {
+            $this->requiresFolio = true;
+
+            $this->validate([
+                'folio' => [
+                    'required',
+                    'string',
+                    'max:255',
+                    Rule::unique('meditions_report_folios', 'folio'),
+                ],
+            ], [
+                'folio.required' => 'Este reporte nunca se ha impreso. Ingresa un folio nuevo para poder imprimir.',
+                'folio.unique' => 'Ese folio ya fue utilizado. Ingresa uno diferente.',
+            ], [
+                'folio' => 'Folio',
+            ]);
+
+            $newFolio = DB::transaction(function () use ($report) {
+                $folio = MeditionsReportFolio::create(['folio' => $this->folio]);
+                $folio->reports()->attach([$report->id]);
+
+                return $folio;
+            });
+
+            $folioValue = $newFolio->folio;
+            $this->folio = null;
+            $this->requiresFolio = false;
+            $this->lastFolioUsed = $folioValue;
+        }
+
+        return redirect()->route('measurementreports.document', [
+            'proccess' => $this->process_selected->id,
+            'folio' => $folioValue,
+        ]);
     }
 
     // Micras tomadas automáticamente del número de parte del proceso
@@ -304,6 +388,7 @@ class Measurementreport extends Component
                 ->show();
         
             $this->status = 'finished';
+            $this->refreshFolioRequirement($report);
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error('Error al terminar el reporte de medición: ' . $e->getMessage());

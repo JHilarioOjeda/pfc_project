@@ -23,6 +23,7 @@
                         <th class="px-4 py-2 hidden lg:table-cell">Código postal</th>
                         <th class="px-4 py-2 hidden lg:table-cell">Dirección</th>
                         <th class="px-4 py-2 hidden lg:table-cell">RFC</th>
+                        <th class="px-4 py-2 hidden lg:table-cell">Formato reporte</th>
                         <th class="px-4 py-2 hidden lg:table-cell">Estatus</th>
                         <th class="px-4 py-2"></th>
                     </tr>
@@ -63,6 +64,9 @@
                                     {{$customer->rfc}}
                                 </td>
                                 <td class="px-4 py-2 hidden lg:table-cell">
+                                    {{ \App\Models\Customer::MEASUREMENT_FORMATS[$customer->measurement_format] ?? '' }}
+                                </td>
+                                <td class="px-4 py-2 hidden lg:table-cell">
                                     @if($customer->active)
                                         <span class="text-green-600 p-1 rounded-lg bg-green-200 text-xs font-semibold">Activo</span>
                                     @else
@@ -81,7 +85,7 @@
                         @endforeach
                     @else
                         <tr>
-                            <td colspan="6" class="text-center py-4">No se encontraron clientes.</td>
+                            <td colspan="7" class="text-center py-4">No se encontraron clientes.</td>
                         </tr>
                     @endif
                 </tbody>
@@ -149,6 +153,47 @@
                                 <div>
                                     <span class="text-red-500 text-xs italic">
                                         @error('rfc')
+                                            {{$message}}
+                                        @enderror
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="md:flex w-full md:space-x-4 mt-3">
+                            <div class="w-full md:w-1/2">
+                                <p class="text-secondarycolor">Teléfono / Celular:</p>
+                                <input wire:model ="telephone" type="text" class="inputcatalogues w-full">
+                                <div>
+                                    <span class="text-red-500 text-xs italic">
+                                        @error('telephone')
+                                            {{$message}}
+                                        @enderror
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="w-full md:w-1/2">
+                                <p class="text-secondarycolor">Email:</p>
+                                <input wire:model ="email" type="text" class="inputcatalogues w-full">
+                                <div>
+                                    <span class="text-red-500 text-xs italic">
+                                        @error('email')
+                                            {{$message}}
+                                        @enderror
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="md:flex w-full md:space-x-4 mt-3">
+                            <div class="w-full md:w-1/2">
+                                <p class="text-secondarycolor">Formato de reporte de medición:</p>
+                                <select wire:model="measurement_format" class="inputcatalogues w-full">
+                                    @foreach (\App\Models\Customer::MEASUREMENT_FORMATS as $formatValue => $formatLabel)
+                                        <option value="{{ $formatValue }}">{{ $formatLabel }}</option>
+                                    @endforeach
+                                </select>
+                                <div>
+                                    <span class="text-red-500 text-xs italic">
+                                        @error('measurement_format')
                                             {{$message}}
                                         @enderror
                                     </span>

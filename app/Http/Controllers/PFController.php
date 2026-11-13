@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Tarima;
 use App\Models\MeditionsReport;
+use App\Models\MeditionsReportFolio;
 use App\Models\Proccess;
 use App\Models\StartChecklist;
 use App\Models\User;
+use App\Support\MeasurementReportFormat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -25,7 +27,7 @@ class PFController extends Controller
         return view('formats.tarima-format', compact('tarima'));
     }
 
-    public function measurementReportDocument($proccess)
+    public function measurementReportDocument(Request $request, $proccess)
     {
         $report = MeditionsReport::with([
             'proccess.tarimaNp.tarima.customer',
@@ -34,7 +36,22 @@ class PFController extends Controller
             'folios',
         ])->where('id_proccess', $proccess)->firstOrFail();
 
-        return view('formats.measurementreport-format', compact('report'));
+        // El formato (1, 2 o 3) depende del cliente; ver Customer::measurement_format.
+        $customer = optional(optional(optional($report->proccess)->tarimaNp)->tarima)->customer;
+
+        return view(MeasurementReportFormat::viewFor($customer), [
+            'reports' => collect([$report]),
+            'customer' => $customer,
+            // Folio de la impresión individual: el que viene en la URL, o el folio
+            // que contiene solo este reporte. Como respaldo (enlaces viejos), el
+            // folio más reciente de cualquier impresión en la que haya salido.
+            'folio' => $request->input('folio')
+                ?: optional(MeditionsReportFolio::findExactForReports([$report->id]))->folio
+                ?: optional($report->latestFolio())->folio,
+            'backUrl' => route('measurementreports', optional($report->proccess)->id),
+            'pdfName' => "reporte-mediciones-{$report->id}.pdf",
+            'pdfType' => 'reporte-mediciones',
+        ]);
     }
 
     public function reportTarimasPrint(Request $request)
@@ -55,7 +72,15 @@ class PFController extends Controller
             $folio = optional($reports->first())->latestFolio()?->folio;
         }
 
-        return view('formats.measurementreporttarimas-format', compact('tarima', 'reports', 'folio'));
+        // El formato (1, 2 o 3) depende del cliente de la tarima.
+        return view(MeasurementReportFormat::viewFor($tarima->customer), [
+            'reports' => $reports,
+            'customer' => $tarima->customer,
+            'folio' => $folio,
+            'backUrl' => route('reporttarimas.detail', $tarima->id),
+            'pdfName' => "reporte-mediciones-tarima-{$tarima->id}.pdf",
+            'pdfType' => 'reporte-mediciones-tarimas',
+        ]);
     }
 
     public function processReportPrint(Request $request)
