@@ -26,6 +26,7 @@ use App\Models\NumberPart;
 use Illuminate\Container\Attributes\Auth as AttributesAuth;
 use Illuminate\Support\Facades\Auth as FacadesAuth;
 use Livewire\Component;
+use Carbon\Carbon;
 
 class Processes extends Component
 {
@@ -45,9 +46,64 @@ class Processes extends Component
         $this->resetPage();
     }
 
+    // Rango de fechas de registro de entrada de la tarima (tarima.register_date).
+    // Ambos son opcionales: vacíos no filtran.
+    #[Url(history: true)]
+    public $fromDate = '';
+
+    #[Url(history: true)]
+    public $toDate = '';
+
     public function updatedFilterTarima(): void
     {
         $this->resetPage();
+    }
+
+    public function updatedFromDate(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedToDate(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function clearFilters(): void
+    {
+        $this->reset(['search', 'filterProcess', 'filterTarima', 'fromDate', 'toDate']);
+        $this->resetPage();
+    }
+
+    // Normaliza el rango: inicio/fin de día y, si vienen invertidas, las intercambia.
+    protected function entryDateRange(): array
+    {
+        $from = $this->parseDate($this->fromDate)?->startOfDay();
+        $to = $this->parseDate($this->toDate)?->endOfDay();
+
+        if ($from && $to && $from->greaterThan($to)) {
+            [$from, $to] = [$to->copy()->startOfDay(), $from->copy()->endOfDay()];
+        }
+
+        return [$from, $to];
+    }
+
+    protected function parseDate($value): ?Carbon
+    {
+        if (!$value) {
+            return null;
+        }
+
+        try {
+            return Carbon::parse($value);
+        } catch (Throwable $e) {
+            return null;
+        }
     }
 
     // Revierte un proceso iniciado por error a "sin comenzar"
@@ -86,6 +142,8 @@ class Processes extends Component
 
     public function render(){
 
+        [$entryFrom, $entryTo] = $this->entryDateRange();
+
         $procesos = Proccess::with(['tarimaNp.tarima', 'tarimaNp.numberPart'])
             ->withCount(['charges', 'meditionsReports'])
             ->when(Auth::user()->user_type == '5', function($query) {
@@ -99,6 +157,12 @@ class Processes extends Component
             ->when($this->filterTarima !== '', function($query) {
                 $query->whereHas('tarimaNp.tarima', function($q) {
                     $q->where('serial_number', 'LIKE', '%' . $this->filterTarima . '%');
+                });
+            })
+            ->when($entryFrom || $entryTo, function($query) use ($entryFrom, $entryTo) {
+                $query->whereHas('tarimaNp.tarima', function($q) use ($entryFrom, $entryTo) {
+                    $q->when($entryFrom, fn ($q) => $q->where('register_date', '>=', $entryFrom))
+                      ->when($entryTo, fn ($q) => $q->where('register_date', '<=', $entryTo));
                 });
             })
             ->where(function($query) {
@@ -122,6 +186,11 @@ class Processes extends Component
             ->orderBy('process')
             ->pluck('process');
 
-        return view('livewire.processes.processes', ['processes' => $procesos, 'processOptions' => $processOptions]);
+        return view('livewire.processes.processes', [
+            'processes' => $procesos,
+            'processOptions' => $processOptions,
+            'entryFrom' => $entryFrom,
+            'entryTo' => $entryTo,
+        ]);
     }
 }

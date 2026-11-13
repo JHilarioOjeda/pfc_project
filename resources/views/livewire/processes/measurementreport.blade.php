@@ -165,14 +165,27 @@
             @endif
         </div>
 
-        <div class="flex flex-row space-x-3 justify-end mt-12">
+        <div class="flex flex-row space-x-3 justify-end items-end mt-12">
             @if($status === 'finished')
-                <x-secondary-hyperlink class="!px-2 !py-1 text-xs" href="{{ route('measurementreports.document', $process_selected->id) }}" target="">
+                @if($requiresFolio)
+                    <div class="w-full sm:w-72">
+                        <label class="block text-sm text-secondarycolor mb-1">Folio para reporte:</label>
+                        <input wire:model="folio" type="text" class="inputcatalogues w-full" placeholder="Ingresa el folio">
+                        <p class="mt-1 text-xs text-amber-600">Este reporte nunca se ha impreso. Ingresa un folio nuevo para poder imprimir.</p>
+                        @if($lastFolioUsed)
+                            <p class="text-xs text-gray-500">Último folio usado: <span class="font-semibold text-gray-700">{{ $lastFolioUsed }}</span></p>
+                        @endif
+                        @error('folio')
+                            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                        @enderror
+                    </div>
+                @endif
+                <x-secondary-button class="!px-2 !py-1 text-xs h-fit whitespace-nowrap" wire:click="printReport">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 mr-1">
                         <path fill-rule="evenodd" d="M10.5 3A1.501 1.501 0 0 0 9 4.5h6A1.5 1.5 0 0 0 13.5 3h-3Zm-2.693.178A3 3 0 0 1 10.5 1.5h3a3 3 0 0 1 2.694 1.678c.497.042.992.092 1.486.15 1.497.173 2.57 1.46 2.57 2.929V19.5a3 3 0 0 1-3 3H6.75a3 3 0 0 1-3-3V6.257c0-1.47 1.073-2.756 2.57-2.93.493-.057.989-.107 1.487-.15Z" clip-rule="evenodd" />
                     </svg>
                     Documento
-                </x-secondary-hyperlink>
+                </x-secondary-button>
             @else
                 <x-secondary-button class="w-fit h-fit" onclick="confirmSaveReport()">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5 mr-1">

@@ -5,17 +5,63 @@
     <p class="text-secondarycolor text-2xl font-bold">Procesos</p>
     <div class="bg-white rounded-lg shadow-lg my-3 p-3">
 
-        <div class="pb-4 w-full flex flex-col md:flex-row lg:flex-row flex-wrap gap-3 md:items-center">
-            <x-search-input class="w-full md:flex-1 lg:w-1/3 min-w-0" wireModel="search" placeholder="Buscar..." />
+        @php
+            $hasFilters = $search !== '' || $filterProcess !== '' || $filterTarima !== '' || $fromDate || $toDate;
+        @endphp
 
-            <select wire:model.live="filterProcess" class="inputcatalogues w-full md:flex-1 lg:w-1/3 min-w-0">
-                <option value="">Todos los procesos de NP</option>
-                @foreach ($processOptions as $option)
-                    <option value="{{ $option }}">{{ $option }}</option>
-                @endforeach
-            </select>
+        <!-- FILTROS
+             Móvil: una columna (las fechas comparten fila).
+             Tablet: búsqueda a todo lo ancho; proceso/tarima y desde/hasta en pares.
+             Escritorio grande: todo en una sola fila. -->
+        <div class="pb-4 w-full grid grid-cols-2 md:grid-cols-4 xl:grid-cols-12 gap-x-3 gap-y-3 items-end">
+            <div class="col-span-2 md:col-span-4 xl:col-span-4 min-w-0">
+                <label class="block text-secondarycolor text-sm mb-1">Buscar</label>
+                {{-- Se ajusta el alto del buscador para alinearlo con los demás campos --}}
+                <x-search-input class="[&_input]:!py-1" wireModel="search" placeholder="NP, OC, OF o tarima..." />
+            </div>
 
-            <input type="text" wire:model.live.debounce.300ms="filterTarima" placeholder="Número de tarima..." class="inputcatalogues w-full md:flex-1 lg:w-1/3 min-w-0">
+            <div class="col-span-2 md:col-span-2 xl:col-span-2 min-w-0">
+                <label class="block text-secondarycolor text-sm mb-1">Proceso de NP</label>
+                <select wire:model.live="filterProcess" class="inputcatalogues w-full">
+                    <option value="">Todos</option>
+                    @foreach ($processOptions as $option)
+                        <option value="{{ $option }}">{{ $option }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="col-span-2 md:col-span-2 xl:col-span-2 min-w-0">
+                <label class="block text-secondarycolor text-sm mb-1">Número de tarima</label>
+                <input type="text" wire:model.live.debounce.300ms="filterTarima" placeholder="Ej. 1024" class="inputcatalogues w-full">
+            </div>
+
+            <!-- Rango de fechas de ingreso (registro) de la tarima -->
+            <div class="col-span-1 md:col-span-2 xl:col-span-2 min-w-0">
+                <label class="block text-secondarycolor text-sm mb-1">Ingreso desde</label>
+                <input wire:model.live="fromDate" type="date" max="{{ $toDate ?: '' }}" class="inputcatalogues w-full min-w-0">
+            </div>
+            <div class="col-span-1 md:col-span-2 xl:col-span-2 min-w-0">
+                <label class="block text-secondarycolor text-sm mb-1">Ingreso hasta</label>
+                <input wire:model.live="toDate" type="date" min="{{ $fromDate ?: '' }}" class="inputcatalogues w-full min-w-0">
+            </div>
+        </div>
+
+        <div class="pb-3 -mt-1 flex flex-wrap items-center justify-between gap-2 text-sm">
+            <p class="text-gray-500">
+                {{ $processes->total() }} {{ $processes->total() === 1 ? 'proceso' : 'procesos' }}
+                @if($entryFrom || $entryTo)
+                    <span class="whitespace-nowrap">
+                        · ingreso de tarima
+                        @if($entryFrom) desde <span class="font-semibold text-gray-700">{{ $entryFrom->format('d/m/Y') }}</span>@endif
+                        @if($entryTo) hasta <span class="font-semibold text-gray-700">{{ $entryTo->format('d/m/Y') }}</span>@endif
+                    </span>
+                @endif
+            </p>
+            @if($hasFilters)
+                <button type="button" wire:click="clearFilters" class="text-primarycolor font-semibold hover:underline">
+                    Limpiar filtros
+                </button>
+            @endif
         </div>
 
         <div class="relative overflow-x-auto rounded-lg">
@@ -24,6 +70,7 @@
                     <tr class="bg-gray-200 text-sm font-semibold">
                         <th class="px-1 py-2 text-center">ID Proceso</th>
                         <th class="px-1 py-2 hidden lg:table-cell"># Tarima</th>
+                        <th class="px-1 py-2 hidden lg:table-cell">Ingreso de tarima</th>
                         <th class="px-3 py-2">Número de parte</th>
                         <th class="px-3 py-2 hidden lg:table-cell">Proceso</th>
                         {{-- <th class="px-1 py-2 hidden lg:table-cell">Orden de compra</th>
@@ -45,12 +92,16 @@
                                 <td class="px-1 py-2 hidden lg:table-cell">
                                     {{$process->tarimaNp->tarima->serial_number}}
                                 </td>
+                                <td class="px-1 py-2 hidden lg:table-cell whitespace-nowrap">
+                                    {{ optional($process->tarimaNp->tarima->register_date)->format('d/m/Y') ?? 'N/A' }}
+                                </td>
                                 <td scope="row" class="px-3 py-2 font-medium whitespace-nowrap">
                                     <span class="font-bold text-sm">{{$process->tarimaNp->numberPart->partnumber}}</span>
                                     
                                     <!-- Datos extra en móvil -->
                                     <div class="block lg:hidden mt-2 text-gray-500 text-sm">
                                         <p><span class="font-semibold text-black"># Tarima:</span> {{$process->tarimaNp->tarima->serial_number}}</p>
+                                        <p><span class="font-semibold">Ingreso de tarima:</span> {{ optional($process->tarimaNp->tarima->register_date)->format('d/m/Y') ?? 'N/A' }}</p>
                                         <p><span class="font-semibold">Proceso:</span> {{$process->tarimaNp->numberPart->process}}</p>
                                         {{-- <p><span class="font-semibold">Orden de compra:</span> {{$process->tarimaNp->oc}}</p>
                                         <p><span class="font-semibold">Orden de fabricación:</span> {{$process->tarimaNp->of}}</p> --}}
@@ -164,7 +215,7 @@
                         @endforeach
                     @else
                         <tr>
-                            <td colspan="6" class="text-center py-4">No se encontraron procesos.</td>
+                            <td colspan="10" class="text-center py-4">No se encontraron procesos.</td>
                         </tr>
                     @endif
                 </tbody>

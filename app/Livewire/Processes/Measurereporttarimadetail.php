@@ -117,18 +117,7 @@ class Measurereporttarimadetail extends Component
     // selección ya se imprimió junta antes y se trata de una reimpresión.
     protected function findExactFolioForSelection($selectedIds): ?MeditionsReportFolio
     {
-        if ($selectedIds->isEmpty()) {
-            return null;
-        }
-
-        $count = $selectedIds->count();
-
-        return MeditionsReportFolio::query()
-            ->whereHas('reports', function ($query) use ($selectedIds) {
-                $query->whereIn('meditions_report.id', $selectedIds->all());
-            }, '=', $count)
-            ->has('reports', '=', $count)
-            ->first();
+        return MeditionsReportFolio::findExactForReports($selectedIds);
     }
 
     // Recalcula si el folio sigue siendo obligatorio según la selección
