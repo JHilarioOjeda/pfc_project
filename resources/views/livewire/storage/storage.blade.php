@@ -72,7 +72,7 @@
                                     <span class="font-bold text-sm">{{$tarima->serial_number}}</span>
                                     <!-- Datos extra en móvil -->
                                     <div class="block lg:hidden mt-2 text-gray-500 text-sm">
-                                        <p class="text-secondarycolor"><span class="font-semibold">Fecha de recepción:</span> {{ date('d/m/Y H:i', strtotime($tarima->register_date)) }}</p>
+                                        <p class="text-secondarycolor"><span class="font-semibold">Fecha de recepción:</span> {{ date('d/m/Y - H:i', strtotime($tarima->register_date)) }}</p>
                                         <p><span class="font-semibold">Cliente:</span> {{$tarima->customer->name}}</p>
                                         <p>
                                             <span class="font-semibold">Quien registró:</span> {{$tarima->registeredBy->name}}
@@ -90,7 +90,7 @@
 
                                 <!-- Columnas visibles solo en pantallas grandes o más grandes -->
                                 <td class="px-4 py-2 hidden lg:table-cell">
-                                    {{ date('d/m/Y H:i', strtotime($tarima->register_date)) }}
+                                    {{ date('d/m/Y - H:i', strtotime($tarima->register_date)) }}
                                 </td>
                                 <td class="px-4 py-2 hidden lg:table-cell">
                                     {{$tarima->customer->name}}
