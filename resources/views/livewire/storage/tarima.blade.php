@@ -36,6 +36,15 @@
                     @enderror
                 </span>
             </div>
+            <div class="w-full md:w-1/3">
+                <p class="text-secondarycolor">Fecha de registro:</p>
+                <input wire:model="register_date" type="datetime-local" class="inputcatalogues w-full" @if($this->isLocked) disabled @endif>
+                <span class="text-red-500 text-xs italic">
+                    @error('register_date')
+                        {{$message}}
+                    @enderror
+                </span>
+            </div>
         </div>
 
         @if($tarimastatus === 'delivered')

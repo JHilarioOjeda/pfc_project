@@ -30,7 +30,7 @@ class Tarima extends Component
     use WithFileUploads;
     use WithPagination;
 
-    public $customers, $number_parts, $tarima_selected, $tarimastatus, $idstorage;
+    public $customers, $number_parts, $register_date, $tarima_selected, $tarimastatus, $idstorage;
     public $serial_number, $id_customer;
     public $id_number_part, $quantity_np, $oc_np, $of_np;
 
@@ -54,6 +54,7 @@ class Tarima extends Component
             $this->serial_number = $this->tarima_selected->serial_number;
             $this->id_customer = $this->tarima_selected->id_customer;
             $this->tarimastatus = $this->tarima_selected->status;
+            $this->register_date = $this->tarima_selected->register_date->format('Y-m-d\TH:i');
             foreach($this->tarima_selected->tarimaNps as $item){
                 $this->numberPartsList[] = [
                     'id_tarima_np' => $item->id,
@@ -67,6 +68,7 @@ class Tarima extends Component
             }
         } else {
             $this->serial_number = $this->lastTarimaRegisterNumber() + 1;
+            $this->register_date = now()->format('Y-m-d\TH:i');
         }
     }
     public function render(){
@@ -119,6 +121,7 @@ class Tarima extends Component
         $this->validate([
             'serial_number' => 'required|unique:tarima,serial_number,' . ($this->tarima_selected ? $this->tarima_selected->id : 'NULL'),
             'id_customer' => 'required|exists:customers,id',
+            'register_date' => 'required|date',
             'numberPartsList' => 'required|array|min:1',
             'numberPartsList.*.id_number_part' => 'required|exists:number_parts,id',
             'numberPartsList.*.quantity' => 'required|numeric|min:1',
@@ -136,6 +139,7 @@ class Tarima extends Component
                 $tarima = $this->tarima_selected;
                 $tarima->serial_number = $this->serial_number;
                 $tarima->id_customer = $this->id_customer;
+                $tarima->register_date = $this->register_date;
                 $tarima->save();
             } else {
                 // Crear nueva tarima
@@ -143,7 +147,7 @@ class Tarima extends Component
                     'serial_number' => $this->serial_number,
                     'id_customer' => $this->id_customer,
                     'who_register' => Auth::id(),
-                    'register_date' => now(),
+                    'register_date' => $this->register_date,
                 ]);
                 $this->tarima_selected = $tarima;
             }
